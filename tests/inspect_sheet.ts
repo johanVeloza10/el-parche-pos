@@ -7,6 +7,10 @@ async function main() {
   await workbook.xlsx.readFile(filePath);
   
   const sheet = workbook.getWorksheet("MARZO - EL PARCHE TIENDA");
+  if (!sheet) {
+    console.log("Pestaña no encontrada");
+    return;
+  }
   console.log(`Pestaña: ${sheet.name}, Filas: ${sheet.rowCount}`);
   
   // Imprimir las primeras 15 filas no vacías

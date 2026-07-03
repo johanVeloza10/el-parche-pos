@@ -1,0 +1,5 @@
+# Credenciales de base de datos de El Parche POS en Supabase
+Proyecto ID: rgkoruuoyvjwknwfslet
+Usuario: postgres
+Contraseña: Elparche10@
+URL REST: https://rgkoruuoyvjwknwfslet.supabase.co

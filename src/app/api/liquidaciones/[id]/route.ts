@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 // GET /api/liquidaciones/[id] - Obtener detalles de una liquidación
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -13,7 +13,7 @@ export async function GET(
       return new NextResponse("No autorizado", { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
 
     const liquidacion = await db.liquidacion.findUnique({
       where: { id },
@@ -38,7 +38,7 @@ export async function GET(
 // PUT /api/liquidaciones/[id] - Actualizar estado o datos de pago
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -46,7 +46,7 @@ export async function PUT(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
     const body = await req.json();
     const { estado, fechaPago, soportePago } = body;
 
@@ -83,7 +83,7 @@ export async function PUT(
 // DELETE /api/liquidaciones/[id] - Eliminar borrador y liberar items
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -91,7 +91,7 @@ export async function DELETE(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
 
     const liquidacion = await db.liquidacion.findUnique({
       where: { id }

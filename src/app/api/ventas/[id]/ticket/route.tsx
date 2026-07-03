@@ -6,7 +6,7 @@ import { TicketReceipt } from "@/components/pdf/TicketReceipt";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function GET(
       return new NextResponse("No autorizado", { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
 
     // Buscar la venta con todos sus detalles
     const venta = await db.venta.findUnique({

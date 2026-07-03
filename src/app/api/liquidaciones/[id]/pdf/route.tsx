@@ -6,7 +6,7 @@ import { LiquidationReceipt } from "@/components/pdf/LiquidationReceipt";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function GET(
       return new NextResponse("No autorizado", { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
 
     // Buscar liquidación
     const liquidacion = await db.liquidacion.findUnique({

@@ -161,7 +161,7 @@ export default function ProveedoresClient() {
         fetchProveedores();
         fetchHistorialLiquidaciones(provSeleccionado.id);
         if (ultimaLiquidacionCreada?.id === liqId) {
-          setUltimaLiquidacionCreada(prev => prev ? { ...prev, estado: "PAGADA" } : null);
+          setUltimaLiquidacionCreada((prev: any) => prev ? { ...prev, estado: "PAGADA" } : null);
         }
       }
     } catch (error) {
@@ -182,7 +182,7 @@ export default function ProveedoresClient() {
       if (res.ok) {
         fetchHistorialLiquidaciones(provSeleccionado.id);
         if (ultimaLiquidacionCreada?.id === liqId) {
-          setUltimaLiquidacionCreada(prev => prev ? { ...prev, estado: "APROBADA" } : null);
+          setUltimaLiquidacionCreada((prev: any) => prev ? { ...prev, estado: "APROBADA" } : null);
         }
       }
     } catch (error) {

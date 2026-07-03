@@ -6,7 +6,7 @@ import { LabelBarcode } from "@/components/pdf/LabelBarcode";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function GET(
       return new NextResponse("No autorizado", { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
 
     // Buscar la prenda
     const prenda = await db.prenda.findUnique({

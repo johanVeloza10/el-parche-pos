@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id: ordenProduccionId } = params;
+    const { id: ordenProduccionId } = await context.params;
     const body = await req.json();
     const { materiaPrimaId, cantidad } = body;
 

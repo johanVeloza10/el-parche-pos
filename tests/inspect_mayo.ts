@@ -8,6 +8,10 @@ async function main() {
   
   for (const name of ["MAYO", "JUNIO"]) {
     const sheet = workbook.getWorksheet(name);
+    if (!sheet) {
+      console.log(`\nPestaña ${name} no encontrada.`);
+      continue;
+    }
     console.log(`\nPestaña: ${sheet.name}, Filas: ${sheet.rowCount}`);
     let printed = 0;
     sheet.eachRow((row, rowNumber) => {

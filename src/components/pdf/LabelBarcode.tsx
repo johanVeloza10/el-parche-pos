@@ -51,7 +51,7 @@ export const LabelBarcode: React.FC<LabelProps> = ({ prenda }) => {
   return (
     <Document>
       <Page size={[141.7, 70.8]} style={styles.page}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title}>
           {prenda.descripcion.substring(0, 20)}
         </Text>
         <Text style={styles.subtitle}>

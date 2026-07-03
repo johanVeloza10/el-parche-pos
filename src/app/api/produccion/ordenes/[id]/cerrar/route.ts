@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
     const body = await req.json();
     const { manoDeObra, costosIndirectos } = body;
 
@@ -79,6 +79,8 @@ export async function POST(
             ordenProduccionId: op.id,
             descripcion: `Diseño El Parche Original - ${op.nombreDiseno}`,
             categoria: "Chaquetas", // Categoría por defecto para las de producción propia
+            talla: "UNICA",
+            color: "MULTICOLOR",
             precioVenta: precioSugerido,
             costoProduccion: costoPorPrenda,
             estado: "EN_VITRINA"

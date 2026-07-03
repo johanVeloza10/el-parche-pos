@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
           select: { nombre: true }
         }
       },
-      orderBy: { creadoEn: "desc" }
+      orderBy: { createdAt: "desc" }
     });
 
     return NextResponse.json(liquidaciones);

@@ -2,9 +2,10 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 
-export default async function TiquetePosPage({ params }: { params: { id: string } }) {
+export default async function TiquetePosPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const venta = await db.venta.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       items: {
         include: {

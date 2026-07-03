@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       for (const prenda of prov.prendas) {
         if (prenda.estado === "EN_VITRINA") {
           prendasEnVitrina++;
-        } else if (prenda.estado === "VENDIDA" && prenda.itemVenta && !prenda.itemVenta.liquidacionId) {
+        } else if (prenda.estado === "VENDIDA" && prenda.itemVenta) {
           prendasVendidasSinLiquidar++;
           saldoPorPagar += prenda.itemVenta.paraProveedor;
         }
