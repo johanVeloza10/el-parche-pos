@@ -10,9 +10,10 @@ interface HeaderProps {
     email?: string | null
     rol: string
   }
+  onMenuClick?: () => void
 }
 
-export default function Header({ user }: HeaderProps) {
+export default function Header({ user, onMenuClick }: HeaderProps) {
   const [pendientesDian, setPendientesDian] = useState(0)
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function Header({ user }: HeaderProps) {
       <div className="flex items-center flex-1">
         <button
           type="button"
+          onClick={onMenuClick}
           className="md:hidden -ml-2 p-2 rounded-md text-[var(--color-text-secondary)] hover:text-white hover:bg-[var(--color-surface-elevated)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-primary)]"
         >
           <span className="sr-only">Abrir menú</span>

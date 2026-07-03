@@ -10,14 +10,17 @@ import {
   BarChart3, 
   Wallet,
   Scissors,
-  Tag
+  Tag,
+  X
 } from "lucide-react"
 
 interface SidebarProps {
   userRol: string
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-export default function Sidebar({ userRol }: SidebarProps) {
+export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
 
   const navItems = [
@@ -34,16 +37,27 @@ export default function Sidebar({ userRol }: SidebarProps) {
   const filteredNav = navItems.filter(item => item.roles.includes(userRol))
 
   return (
-    <aside className="w-64 bg-[var(--color-surface)] border-r border-[var(--color-surface-elevated)] hidden md:flex flex-col h-full z-20 relative">
+    <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[var(--color-surface)] border-r border-[var(--color-surface-elevated)] flex flex-col h-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    } relative`}>
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-accent)] shadow-[0_0_10px_rgba(255,231,0,0.5)]" />
       
-      <div className="h-16 flex items-center px-6 border-b border-[var(--color-surface-elevated)]">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-[var(--color-surface-elevated)]">
         <span className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5">
           el
           <span className="bg-gradient-to-br from-[var(--color-primary)] to-[#FFA500] bg-clip-text text-transparent">
             Parche
           </span>
         </span>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-white hover:bg-[var(--color-surface-elevated)]"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
