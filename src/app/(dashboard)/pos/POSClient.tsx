@@ -97,7 +97,7 @@ export default function POSClient() {
   const vueltas = (parseInt(efectivoRecibido || "0") || 0) - total;
 
   return (
-    <div className="h-full flex flex-col md:flex-row gap-6 p-6 max-w-7xl mx-auto">
+    <div className="h-auto md:h-full flex flex-col md:flex-row gap-6 p-4 md:p-6 max-w-7xl mx-auto overflow-y-auto md:overflow-visible">
       
       {/* LADO IZQUIERDO: Buscador y Resultados */}
       <div className="flex-1 flex flex-col gap-4">
