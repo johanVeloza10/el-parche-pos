@@ -1,0 +1,428 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// -----------------------------------------------------------------------------
+// CONFIGURACIÓN GLOBAL
+// -----------------------------------------------------------------------------
+model ConfiguracionNegocio {
+  id                    String  @id @default("default")
+  nombreNegocio         String  @default("El Parche Diseño")
+  nit                   String  @default("123456789-0")
+  direccion             String  @default("Colombia")
+  telefono              String  @default("")
+  email                 String  @default("contacto@elparche.co")
+  
+  regimenIva            Boolean @default(false)
+  comisionDefaultPct    Float   @default(30.0)
+  modoComisionDefault   String  @default("PORCENTAJE") // PORCENTAJE | VALOR_FIJO
+  margenObjetivoDefault Float   @default(50.0)
+  
+  prefijoCodigoPrenda   String  @default("PAR")
+  consecutivoActual     Int     @default(0)
+  numeracionDeePos      Int     @default(0)
+  numeracionFactura     Int     @default(0)
+  
+  logoUrl               String? 
+  colorPrimario         String  @default("#C41E3A")
+}
+
+// -----------------------------------------------------------------------------
+// USUARIOS Y AUTH
+// -----------------------------------------------------------------------------
+model Usuario {
+  id           String   @id @default(cuid())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          String   // ADMIN | VENDEDORA | CONTADOR
+  activo       Boolean  @default(true)
+  
+  ventas       Venta[]
+  cierresCaja  CierreCaja[]
+  auditorias   AuditLog[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// PROVEEDORES (Consignación)
+// -----------------------------------------------------------------------------
+model Proveedor {
+  id                  String   @id @default(cuid())
+  nombre              String
+  tipoDocumento       String   // CC | NIT | CE | PASAPORTE | TI
+  numeroDocumento     String
+  telefono            String?
+  email               String?
+  direccion           String?
+  
+  datosBancarios      String?  // JSON string
+  comisionDefaultPct  Float
+  modoComisionDefault String   @default("PORCENTAJE") // PORCENTAJE | VALOR_FIJO
+  plazoMaxVitrinaDias Int      @default(90)
+  
+  responsableIva      Boolean  @default(false)
+  emiteFactura        Boolean  @default(false)
+  notas               String?
+  activo              Boolean  @default(true)
+  
+  prendas             Prenda[]
+  liquidaciones       Liquidacion[]
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// INVENTARIO (Prendas Únicas)
+// -----------------------------------------------------------------------------
+model Prenda {
+  id                String   @id @default(cuid())
+  codigo            String   @unique // Ej: PAR-2026-00001
+  codigoBarras      String   @unique // EAN-13
+  origen            String   // CONSIGNACION | PRODUCCION_PROPIA
+  
+  proveedorId       String?
+  proveedor         Proveedor? @relation(fields: [proveedorId], references: [id])
+  
+  ordenProduccionId String?
+  ordenProduccion   OrdenProduccion? @relation(fields: [ordenProduccionId], references: [id])
+  
+  descripcion       String
+  categoria         String
+  talla             String
+  color             String
+  fotos             String?  // JSON array de paths
+  
+  precioVenta       Int      // COP
+  valorProveedor    Int?     // Solo consignación
+  comisionPct       Float?
+  modoComision      String   @default("PORCENTAJE")
+  costoProduccion   Int?     // Calculado si es producción propia
+  iva               Float    @default(0) // Reservado
+  
+  estado            String   @default("EN_VITRINA") // EN_VITRINA|APARTADA|VENDIDA|DEVUELTA_PROVEEDOR|EN_GARANTIA|DADA_BAJA
+  
+  fechaIngreso      DateTime @default(now())
+  fechaVenta        DateTime?
+  
+  itemVenta         ItemVenta?
+  apartado          Apartado?
+  
+  deletedAt         DateTime? // Soft delete
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([estado])
+  @@index([proveedorId])
+  @@index([categoria])
+  @@index([fechaIngreso])
+}
+
+// -----------------------------------------------------------------------------
+// CLIENTES Y VENTAS
+// -----------------------------------------------------------------------------
+model Cliente {
+  id              String   @id @default(cuid())
+  nombre          String
+  tipoDocumento   String
+  numeroDocumento String
+  email           String?
+  telefono        String?
+  
+  ventas          Venta[]
+  apartados       Apartado[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Venta {
+  id                     String   @id @default(cuid())
+  fechaHora              DateTime @default(now())
+  
+  usuarioId              String
+  usuario                Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  clienteId              String?
+  cliente                Cliente? @relation(fields: [clienteId], references: [id])
+  
+  medioPago              String   // EFECTIVO|TARJETA|TRANSFERENCIA|MIXTO
+  desglosePago           String?  // JSON string
+  
+  subtotal               Int
+  descuento              Int      @default(0)
+  total                  Int
+  
+  motivoDescuento        String?
+  descuentoAutorizadoPor String?
+  politicaDescuento      String   @default("ASUME_BOUTIQUE")
+  
+  anulada                Boolean  @default(false)
+  motivoAnulacion        String?
+  
+  cierreCajaId           String?
+  cierreCaja             CierreCaja? @relation(fields: [cierreCajaId], references: [id])
+  
+  items                  ItemVenta[]
+  documentoFiscal        DocumentoFiscal?
+  
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model ItemVenta {
+  id                 String   @id @default(cuid())
+  ventaId            String
+  venta              Venta    @relation(fields: [ventaId], references: [id])
+  
+  prendaId           String   @unique
+  prenda             Prenda   @relation(fields: [prendaId], references: [id])
+  
+  precioVenta        Int      // Snapshot
+  descuentoItem      Int      @default(0)
+  
+  paraProveedor      Int      @default(0)
+  comisionBoutique   Int      @default(0)
+  
+  esProduccionPropia Boolean  @default(false)
+  costoProduccion    Int?     // Snapshot
+  
+  itemLiquidacion    ItemLiquidacion?
+}
+
+model DocumentoFiscal {
+  id                 String   @id @default(cuid())
+  ventaId            String   @unique
+  venta              Venta    @relation(fields: [ventaId], references: [id])
+  
+  tipo               String   // DEE_POS|FACTURA_ELECTRONICA|NOTA_AJUSTE
+  numero             String
+  cufe               String?
+  qrData             String?
+  
+  estadoTransmision  String   @default("PENDIENTE") // PENDIENTE|ACEPTADO|RECHAZADO
+  
+  clienteNombre      String?
+  clienteDocumento   String?
+  clienteEmail       String?
+  
+  payloadEnviado     String?  // JSON
+  respuestaProveedor String?  // JSON
+  intentosTransmision Int     @default(0)
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// LIQUIDACIONES A PROVEEDORES
+// -----------------------------------------------------------------------------
+model Liquidacion {
+  id             String   @id @default(cuid())
+  proveedorId    String
+  proveedor      Proveedor @relation(fields: [proveedorId], references: [id])
+  
+  periodoInicio  DateTime
+  periodoFin     DateTime
+  
+  totalVentas    Int
+  totalComision  Int
+  netoAPagar     Int
+  
+  estado         String   @default("BORRADOR") // BORRADOR|APROBADA|PAGADA
+  fechaPago      DateTime?
+  soportePago    String?
+  pdfGenerado    String?
+  observaciones  String?
+  
+  items          ItemLiquidacion[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ItemLiquidacion {
+  id                String      @id @default(cuid())
+  liquidacionId     String
+  liquidacion       Liquidacion @relation(fields: [liquidacionId], references: [id], onDelete: Cascade)
+  
+  itemVentaId       String      @unique
+  itemVenta         ItemVenta   @relation(fields: [itemVentaId], references: [id])
+  
+  prendaCodigo      String
+  prendaDescripcion String
+  precioVenta       Int
+  valorProveedor    Int
+  comision          Int
+}
+
+// -----------------------------------------------------------------------------
+// PRODUCCIÓN PROPIA Y MATERIA PRIMA
+// -----------------------------------------------------------------------------
+model MateriaPrima {
+  id                  String   @id @default(cuid())
+  nombre              String
+  unidad              String   // METRO|UNIDAD|CONO|KILO|LITRO|YARDA
+  costoPromedioActual Float    @default(0)
+  existencia          Float    @default(0)
+  
+  compras             CompraMateriaPrima[]
+  consumos            ConsumoMateriaPrima[]
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model CompraMateriaPrima {
+  id             String       @id @default(cuid())
+  materiaPrimaId String
+  materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id])
+  
+  proveedorInsumo String
+  cantidad       Float
+  costoTotal     Int
+  costoUnitario  Float
+  
+  fecha          DateTime     @default(now())
+  soporte        String?
+}
+
+model OrdenProduccion {
+  id               String   @id @default(cuid())
+  nombreDiseno     String
+  fechaInicio      DateTime @default(now())
+  fechaCierre      DateTime?
+  
+  estado           String   @default("ABIERTA") // ABIERTA|CERRADA
+  manoDeObra       String?  // JSON array [{concepto, valor}]
+  costosIndirectos Int      @default(0)
+  
+  costoTotal       Int?
+  cantidadPrendas  Int      @default(1)
+  costoPorPrenda   Int?
+  margenObjetivo   Float    @default(50.0)
+  precioSugerido   Int?
+  
+  consumos         ConsumoMateriaPrima[]
+  prendas          Prenda[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ConsumoMateriaPrima {
+  id                     String          @id @default(cuid())
+  ordenProduccionId      String
+  ordenProduccion        OrdenProduccion @relation(fields: [ordenProduccionId], references: [id])
+  
+  materiaPrimaId         String
+  materiaPrima           MateriaPrima    @relation(fields: [materiaPrimaId], references: [id])
+  
+  cantidad               Float
+  costoUnitarioAlConsumo Float
+  costoTotal             Int
+  
+  fecha                  DateTime        @default(now())
+}
+
+model CostoNegocio {
+  id       String   @id @default(cuid())
+  tipo     String   // FIJO|VARIABLE
+  concepto String
+  valor    Int      // COP
+  mes      String   // format: 2026-06
+  soporte  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// CAJA Y OTROS PROCESOS
+// -----------------------------------------------------------------------------
+model CierreCaja {
+  id                  String   @id @default(cuid())
+  fecha               DateTime @default(now())
+  
+  usuarioId           String
+  usuario             Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  estado              String   @default("ABIERTA") // ABIERTA|CERRADA
+  
+  ventasEfectivo      Int      @default(0)
+  ventasTarjeta       Int      @default(0)
+  ventasTransferencia Int      @default(0)
+  totalVentasSistema  Int      @default(0)
+  
+  efectivoContado     Int?
+  diferencia          Int?
+  observacion         String?
+  
+  ventas              Venta[]
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Apartado {
+  id            String   @id @default(cuid())
+  prendaId      String   @unique
+  prenda        Prenda   @relation(fields: [prendaId], references: [id])
+  
+  clienteId     String
+  cliente       Cliente  @relation(fields: [clienteId], references: [id])
+  
+  abono         Int
+  totalPrenda   Int
+  
+  fechaCreacion DateTime @default(now())
+  fechaLimite   DateTime
+  estado        String   @default("VIGENTE") // VIGENTE|COMPLETADO|VENCIDO
+  observaciones String?
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  entidad       String
+  entidadId     String
+  accion        String
+  
+  usuarioId     String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  valorAnterior String?  // JSON
+  valorNuevo    String?  // JSON
+  motivo        String?
+  fecha         DateTime @default(now())
+
+  @@index([entidad, entidadId])
+  @@index([usuarioId])
+  @@index([fecha])
+}
+
+model HistoricoLibro {
+  id            String   @id @default(cuid())
+  mes           String   // Ej: "2026-01"
+  mesNombre     String   // Ej: "Enero"
+  dia           Int
+  fecha         String   // Ej: "2026-01-15"
+  ventasBrutas  Int
+  pagosTerceros Int
+  ingresoReal   Int
+  gastos        Int
+  saldoDia      Int
+  createdAt     DateTime @default(now())
+}
+

@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #FFE700; /* Amarillo Vibrante */
+  --color-primary-light: #FFF04D;
+  --color-primary-dark: #CCA000;
+  --color-secondary: #00E5FF; /* Cian Eléctrico */
+  --color-accent: #E5001C; /* Rojo Corazón */
+  
+  --color-bg-dark: #0A0A0A; /* Negro profundo lujoso */
+  --color-surface: #121212;
+  --color-surface-elevated: #1C1C1C;
+  
+  --color-success: #10B981;
+  --color-warning: #FFE700; /* Usamos el amarillo de marca como advertencia */
+  --color-danger: #E5001C; /* Usamos el rojo de marca como peligro */
+
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
+}
+
+:root {
+  --background: #0A0A0A;
+  --foreground: #F8FAFC;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-outfit), sans-serif;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-dark); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-elevated); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark); 
+}
