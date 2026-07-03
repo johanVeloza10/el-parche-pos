@@ -97,7 +97,7 @@ export default function POSClient() {
   const vueltas = (parseInt(efectivoRecibido || "0") || 0) - total;
 
   return (
-    <div className="h-auto md:h-full flex flex-col md:flex-row gap-6 p-4 md:p-6 max-w-7xl mx-auto overflow-y-auto md:overflow-visible">
+    <div className="h-auto md:h-full flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-7xl mx-auto">
       
       {/* LADO IZQUIERDO: Buscador y Resultados */}
       <div className="flex-1 flex flex-col gap-4">
@@ -125,11 +125,11 @@ export default function POSClient() {
 
         {/* Resultados Búsqueda */}
         {resultados.length > 0 && (
-          <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-2xl p-4 shadow-lg overflow-y-auto flex-1">
+          <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-2xl p-3 sm:p-4 shadow-lg overflow-y-auto flex-1 max-h-64 md:max-h-none">
             <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-4 uppercase tracking-wider">Resultados ({resultados.length})</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {resultados.map(prenda => (
-                <div key={prenda.id} onClick={() => agregarAlCarrito(prenda)} className="flex gap-4 items-center p-3 rounded-xl border border-[var(--color-surface-elevated)] hover:border-[var(--color-primary)] cursor-pointer transition-colors bg-[var(--color-surface-elevated)]/30 hover:bg-[var(--color-surface-elevated)]">
+                <div key={prenda.id} onClick={() => agregarAlCarrito(prenda)} className="flex gap-3 sm:gap-4 items-center p-2 sm:p-3 rounded-xl border border-[var(--color-surface-elevated)] hover:border-[var(--color-primary)] cursor-pointer transition-colors bg-[var(--color-surface-elevated)]/30 hover:bg-[var(--color-surface-elevated)]">
                   <div className="w-16 h-16 bg-[var(--color-surface-elevated)] rounded-lg flex items-center justify-center shrink-0">
                     <span className="text-xs text-[var(--color-text-muted)]">Foto</span>
                   </div>
@@ -147,13 +147,13 @@ export default function POSClient() {
 
       {/* LADO DERECHO: Carrito */}
       <div className="w-full md:w-96 bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-3xl flex flex-col shadow-xl overflow-hidden">
-        <div className="p-6 bg-[var(--color-surface-elevated)]/50 border-b border-[var(--color-surface-elevated)]">
+        <div className="p-4 sm:p-6 bg-[var(--color-surface-elevated)]/50 border-b border-[var(--color-surface-elevated)]">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <ShoppingCart className="w-6 h-6" /> Caja Actual
           </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3 sm:gap-4">
           {carrito.length === 0 ? (
             <div className="text-center text-[var(--color-text-secondary)] py-10 flex flex-col items-center gap-3">
               <ShoppingCart className="w-12 h-12 text-[var(--color-surface-elevated)]" />
@@ -161,7 +161,7 @@ export default function POSClient() {
             </div>
           ) : (
             carrito.map(item => (
-              <div key={item.id} className="flex flex-col gap-2 p-4 rounded-xl border border-[var(--color-surface-elevated)] bg-black/20">
+              <div key={item.id} className="flex flex-col gap-2 p-3 sm:p-4 rounded-xl border border-[var(--color-surface-elevated)] bg-black/20">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium text-white">{item.descripcion}</p>
@@ -180,7 +180,7 @@ export default function POSClient() {
           )}
         </div>
 
-        <div className="p-6 bg-[var(--color-surface-elevated)]/30 border-t border-[var(--color-surface-elevated)] flex flex-col gap-3">
+        <div className="p-4 sm:p-6 bg-[var(--color-surface-elevated)]/30 border-t border-[var(--color-surface-elevated)] flex flex-col gap-2 sm:gap-3">
           <div className="flex justify-between text-sm text-[var(--color-text-secondary)]">
             <span>Subtotal</span>
             <span>${subtotal.toLocaleString('es-CO')}</span>
@@ -210,14 +210,14 @@ export default function POSClient() {
       {modalAbierto && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-[var(--color-surface-elevated)] flex justify-between items-center">
+            <div className="p-4 sm:p-6 border-b border-[var(--color-surface-elevated)] flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white">Finalizar Venta</h2>
               <button onClick={() => setModalAbierto(false)} className="text-[var(--color-text-secondary)] hover:text-white">
                 <X className="w-6 h-6" />
               </button>
             </div>
             
-            <div className="p-6 flex flex-col gap-6">
+            <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
               <div>
                 <p className="text-center text-[var(--color-text-secondary)] mb-1">Total a cobrar</p>
                 <p className="text-center text-4xl font-black text-white">${total.toLocaleString('es-CO')}</p>
@@ -226,21 +226,21 @@ export default function POSClient() {
               <div className="grid grid-cols-3 gap-3">
                 <button 
                   onClick={() => setMedioPago("EFECTIVO")}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${medioPago === 'EFECTIVO' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
+                  className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 rounded-xl border-2 transition-all ${medioPago === 'EFECTIVO' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
                 >
                   <Banknote className="w-8 h-8" />
                   <span className="text-sm font-medium">Efectivo</span>
                 </button>
                 <button 
                   onClick={() => setMedioPago("TARJETA")}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${medioPago === 'TARJETA' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
+                  className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 rounded-xl border-2 transition-all ${medioPago === 'TARJETA' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
                 >
                   <CreditCard className="w-8 h-8" />
                   <span className="text-sm font-medium">Tarjeta</span>
                 </button>
                 <button 
                   onClick={() => setMedioPago("TRANSFERENCIA")}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${medioPago === 'TRANSFERENCIA' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
+                  className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 rounded-xl border-2 transition-all ${medioPago === 'TRANSFERENCIA' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-white'}`}
                 >
                   <Smartphone className="w-8 h-8" />
                   <span className="text-sm font-medium">Nequi/Tx</span>
@@ -248,7 +248,7 @@ export default function POSClient() {
               </div>
 
               {medioPago === "EFECTIVO" && (
-                <div className="bg-black/30 p-5 rounded-2xl border border-[var(--color-surface-elevated)]">
+                <div className="bg-black/30 p-3 sm:p-5 rounded-2xl border border-[var(--color-surface-elevated)]">
                   <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Efectivo Recibido</label>
                   <input
                     type="number"
@@ -268,7 +268,7 @@ export default function POSClient() {
               )}
             </div>
 
-            <div className="p-6 bg-[var(--color-surface-elevated)]/30 border-t border-[var(--color-surface-elevated)]">
+            <div className="p-4 sm:p-6 bg-[var(--color-surface-elevated)]/30 border-t border-[var(--color-surface-elevated)]">
               <button 
                 disabled={procesando || (medioPago === 'EFECTIVO' && vueltas < 0 && efectivoRecibido !== '')}
                 onClick={procesarVenta}
