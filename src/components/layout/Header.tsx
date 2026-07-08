@@ -38,21 +38,24 @@ export default function Header({ user, onMenuClick }: HeaderProps) {
 
   return (
     <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-[var(--color-surface)] border-b border-[var(--color-surface-elevated)] z-10 shadow-sm relative">
-      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-accent)] opacity-40 shadow-[0_0_8px_rgba(0,229,255,0.4)]" />
+      {/* Hilo de luz tricolor en la base del header */}
+      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#FCD116] via-[#00E5FF] to-[#E5001C] opacity-50 shadow-[0_0_6px_rgba(0,229,255,0.2)]" />
 
       <div className="flex items-center flex-1">
         <button
           type="button"
           onClick={onMenuClick}
-          className="md:hidden -ml-2 p-2 rounded-md text-[var(--color-text-secondary)] hover:text-white hover:bg-[var(--color-surface-elevated)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-primary)]"
+          className="md:hidden -ml-2 p-2 rounded-md text-[var(--color-text-secondary)] hover:text-white hover:bg-[var(--color-surface-elevated)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-logo-yellow)]"
         >
           <span className="sr-only">Abrir menú</span>
           <Menu className="h-6 w-6" aria-hidden="true" />
         </button>
         
-        <div className="hidden md:block">
-          <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
-            El Parche <span className="text-[var(--color-primary)]">POS</span>
+        <div className="hidden md:block select-none">
+          <h2 className="font-heading text-xl uppercase tracking-[0.1em] text-white flex items-baseline gap-1">
+            <span className="font-light italic text-zinc-400 lowercase font-serif text-lg">el</span>
+            <span className="font-bold text-white">Parche</span>
+            <span className="font-sans font-bold text-[9px] tracking-wider text-[var(--color-logo-cyan)] bg-[var(--color-surface-elevated)] px-2 py-0.5 rounded-md ml-2 border border-zinc-800">POS</span>
           </h2>
         </div>
       </div>
@@ -84,7 +87,7 @@ export default function Header({ user, onMenuClick }: HeaderProps) {
             <span className="text-xs text-[var(--color-text-muted)] truncate max-w-[150px]">{user.email}</span>
           </div>
           
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-accent)] flex items-center justify-center text-black font-black text-sm shadow-[0_0_12px_rgba(0,229,255,0.4)] border border-white/20">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#FFE700] via-[#00E5FF] to-[#E5001C] flex items-center justify-center text-black font-black text-sm shadow-[0_0_12px_rgba(0,229,255,0.25)] border border-white/10 select-none">
             {user.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           

@@ -1,48 +1,89 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #FFE700; /* Amarillo Vibrante */
-  --color-primary-light: #FFF04D;
-  --color-primary-dark: #CCA000;
-  --color-secondary: #00E5FF; /* Cian Eléctrico */
-  --color-accent: #E5001C; /* Rojo Corazón */
+  --color-primary: #FCD116; /* Amarillo Colombia */
+  --color-primary-light: #FFE052;
+  --color-primary-dark: #C49E00;
   
-  --color-bg-dark: #0A0A0A; /* Negro profundo lujoso */
+  --color-colombia-blue: #003893; /* Azul Colombia */
+  --color-colombia-red: #CE1126; /* Rojo Colombia */
+  
+  --color-logo-yellow: #FFE700; /* Amarillo Logo Original */
+  --color-logo-cyan: #00E5FF; /* Cian Eléctrico */
+  --color-accent: #E5001C; /* Rojo Corazón */
+  --color-white: #FFFFFF; /* Blanco Puro */
+  
+  --color-bg-dark: #070707; /* Negro absoluto lujoso */
   --color-surface: #121212;
-  --color-surface-elevated: #1C1C1C;
+  --color-surface-elevated: #1A1A1A;
   
   --color-success: #10B981;
-  --color-warning: #FFE700; /* Usamos el amarillo de marca como advertencia */
-  --color-danger: #E5001C; /* Usamos el rojo de marca como peligro */
+  --color-warning: #FCD116;
+  --color-danger: #CE1126;
 
-  --color-text-primary: #F8FAFC;
+  --color-text-primary: #FFFFFF;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
 
   --font-sans: var(--font-inter);
-  --font-heading: var(--font-outfit);
+  --font-heading: var(--font-cormorant);
 }
 
 :root {
-  --background: #0A0A0A;
-  --foreground: #F8FAFC;
+  --background: #070707;
+  --foreground: #FFFFFF;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
+  
+  /* Textura de lienzo / hilos entrelazados muy sutil */
+  background-image: 
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 14px 14px;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-outfit), sans-serif;
+  font-family: var(--font-cormorant), serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Clases de Alta Costura: Bordes de Costura / Puntadas */
+.border-stitch-colombia {
+  border: 1.5px dashed transparent;
+  background: linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+              repeating-linear-gradient(90deg, #FCD116 0px, #FCD116 10px, #003893 10px, #003893 20px, #CE1126 20px, #CE1126 30px) border-box;
+}
+
+.border-stitch-gold {
+  border: 1.2px dashed transparent;
+  background: linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+              repeating-linear-gradient(90deg, #FFE700 0px, #FFE700 8px, transparent 8px, transparent 14px) border-box;
+}
+
+.border-stitch-white {
+  border: 1.2px dashed transparent;
+  background: linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+              repeating-linear-gradient(90deg, #FFFFFF 0px, #FFFFFF 6px, transparent 6px, transparent 12px) border-box;
+}
+
+/* Tipografía de Revista de Moda */
+.text-magazine-title {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 /* Glassmorphism utilities */
 .glass-panel {
-  background: rgba(18, 18, 18, 0.7);
+  background: rgba(18, 18, 18, 0.75);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 

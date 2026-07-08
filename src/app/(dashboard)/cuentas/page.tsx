@@ -1,10 +1,10 @@
-import CuentasClient from "./CuentasClient";
+import CuentasClarasClient from "./CuentasClarasClient";
 
 export const metadata = {
   title: "Cuentas Claras | El Parche",
-  description: "Resumen contable y libro fiscal de El Parche Diseño",
+  description: "Dashboard financiero artístico de El Parche Diseño",
 };
 
 export default function CuentasPage() {
-  return <CuentasClient />;
+  return <CuentasClarasClient />;
 }

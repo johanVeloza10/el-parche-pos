@@ -138,12 +138,31 @@ export async function POST(req: NextRequest) {
       // Si hay caja abierta, acumulamos los totales en caja
       if (cajaAbierta) {
         const updateData: any = {};
-        if (medioPago === "EFECTIVO") updateData.ventasEfectivo = { increment: totalVenta };
-        else if (medioPago === "TARJETA") updateData.ventasTarjeta = { increment: totalVenta };
-        else if (medioPago === "TRANSFERENCIA") updateData.ventasTransferencia = { increment: totalVenta };
-        
+
+        if (medioPago === "EFECTIVO") {
+          updateData.ventasEfectivo = { increment: totalVenta };
+        } else if (medioPago === "TARJETA") {
+          updateData.ventasTarjeta = { increment: totalVenta };
+        } else if (medioPago === "TRANSFERENCIA") {
+          updateData.ventasTransferencia = { increment: totalVenta };
+        } else if (medioPago === "MIXTO" && desglosePago) {
+          // Parse desglose — it may already be an object from the frontend body
+          const desglose = typeof desglosePago === "string"
+            ? JSON.parse(desglosePago)
+            : desglosePago;
+          if (desglose.efectivo) {
+            updateData.ventasEfectivo = { increment: desglose.efectivo };
+          }
+          if (desglose.tarjeta) {
+            updateData.ventasTarjeta = { increment: desglose.tarjeta };
+          }
+          if (desglose.transferencia) {
+            updateData.ventasTransferencia = { increment: desglose.transferencia };
+          }
+        }
+
         updateData.totalVentasSistema = { increment: totalVenta };
-        
+
         await tx.cierreCaja.update({
           where: { id: cajaAbierta.id },
           data: updateData

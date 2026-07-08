@@ -30,6 +30,7 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
     { name: "Proveedores", href: "/proveedores", icon: Users, roles: ["ADMIN", "CONTADOR", "VENDEDORA"] },
     { name: "Producción", href: "/produccion", icon: Scissors, roles: ["ADMIN", "CONTADOR"] },
     { name: "Cuentas", href: "/cuentas", icon: Wallet, roles: ["ADMIN", "CONTADOR"] },
+    { name: "Caja Diaria", href: "/caja", icon: Store, roles: ["ADMIN", "VENDEDORA"] },
     { name: "Reportes", href: "/reportes", icon: BarChart3, roles: ["ADMIN", "CONTADOR"] },
     { name: "Configuración", href: "/configuracion", icon: Settings, roles: ["ADMIN"] },
   ]
@@ -40,14 +41,13 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
     <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[var(--color-surface)] border-r border-[var(--color-surface-elevated)] flex flex-col h-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
       isOpen ? "translate-x-0" : "-translate-x-full"
     } relative`}>
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-accent)] shadow-[0_0_10px_rgba(255,231,0,0.5)]" />
+      {/* Costura brillante de la Bandera de Colombia en el tope */}
+      <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#FCD116] via-[#003893] to-[#CE1126]" />
       
-      <div className="h-16 flex items-center justify-between px-6 border-b border-[var(--color-surface-elevated)]">
-        <span className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5">
-          el
-          <span className="bg-gradient-to-br from-[var(--color-primary)] to-[#FFA500] bg-clip-text text-transparent">
-            Parche
-          </span>
+      <div className="h-16 flex items-center justify-between px-6 border-b border-[var(--color-surface-elevated)] relative">
+        <span className="font-heading text-2xl uppercase tracking-[0.15em] text-white flex items-baseline gap-1 select-none">
+          <span className="font-light italic text-zinc-400 lowercase font-serif">el</span>
+          <span className="font-bold text-white">Parche</span>
         </span>
         {onClose && (
           <button
@@ -70,15 +70,15 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center px-3 py-3 text-sm font-bold rounded-xl transition-all duration-300 relative ${
+                className={`group flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300 relative ${
                   isActive 
-                    ? "bg-gradient-to-r from-[var(--color-primary)] to-[#FFCC00] text-black shadow-[0_0_15px_rgba(255,231,0,0.4)] translate-x-1" 
+                    ? "border-stitch-gold text-white shadow-[0_0_15px_rgba(255,231,0,0.08)] translate-x-1" 
                     : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-white"
                 }`}
               >
                 <Icon 
                   className={`mr-3 flex-shrink-0 h-5 w-5 transition-colors ${
-                    isActive ? "text-black" : "text-[var(--color-text-muted)] group-hover:text-[var(--color-secondary)]"
+                    isActive ? "text-[var(--color-logo-yellow)]" : "text-[var(--color-text-muted)] group-hover:text-[var(--color-logo-cyan)]"
                   }`} 
                   aria-hidden="true" 
                 />
