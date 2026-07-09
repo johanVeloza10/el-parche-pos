@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       let totalDescuento = 0;
       let totalVenta = 0;
 
-      const itemsParaCrear = prendasEnBd.map(prendaBd => {
+      const itemsParaCrear = prendasEnBd.map((prendaBd: any) => {
         const itemFrontend = items.find((i: any) => i.id === prendaBd.id);
         const descuentoItem = itemFrontend.descuento || 0;
         
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         total: nuevaVenta.total,
         descuento: nuevaVenta.descuento,
         medioPago: nuevaVenta.medioPago,
-        items: nuevaVenta.items.map(item => ({
+        items: nuevaVenta.items.map((item: any) => ({
           prendaId: item.prendaId,
           precioVenta: item.precioVenta,
           descripcion: item.prenda.descripcion

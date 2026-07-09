@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: any) => {
       // 1. Find the venta with items and prendas
       const venta = await tx.venta.findUnique({
         where: { id: ventaId },

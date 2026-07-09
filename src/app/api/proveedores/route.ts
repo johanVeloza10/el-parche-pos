@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Calcular métricas para cada proveedor
-    const resultado = proveedores.map(prov => {
+    const resultado = proveedores.map((prov: any) => {
       let prendasEnVitrina = 0;
       let prendasVendidasSinLiquidar = 0;
       let saldoPorPagar = 0;

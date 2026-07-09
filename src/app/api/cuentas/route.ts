@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
     for (const mes in mensualidades) {
       const m = mensualidades[mes];
       // Si no es parte del histórico estático, calculamos
-      const esHistoricoStatic = historicos.some(h => h.mes === mes);
+      const esHistoricoStatic = historicos.some((h: any) => h.mes === mes);
       if (!esHistoricoStatic) {
         m.ganancia = m.ingresoReal - m.gastos;
         

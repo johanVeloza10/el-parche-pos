@@ -31,18 +31,18 @@ export async function GET(req: NextRequest) {
 
     // Calcular el ranking
     const ranking = proveedores
-      .map((prov) => {
-        const prendasVendidas = prov.prendas.filter((p) => p.itemVenta);
+      .map((prov: any) => {
+        const prendasVendidas = prov.prendas.filter((p: any) => p.itemVenta);
         const totalVentas = prendasVendidas.reduce(
-          (sum, p) => sum + (p.itemVenta?.precioVenta || 0),
+          (sum: number, p: any) => sum + (p.itemVenta?.precioVenta || 0),
           0
         );
         const totalComision = prendasVendidas.reduce(
-          (sum, p) => sum + (p.itemVenta?.comisionBoutique || 0),
+          (sum: number, p: any) => sum + (p.itemVenta?.comisionBoutique || 0),
           0
         );
         const totalParaProveedor = prendasVendidas.reduce(
-          (sum, p) => sum + (p.itemVenta?.paraProveedor || 0),
+          (sum: number, p: any) => sum + (p.itemVenta?.paraProveedor || 0),
           0
         );
 
@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
           comisionPct: prov.comisionDefaultPct,
         };
       })
-      .filter((p) => p.prendasVendidas > 0 || p.prendasEnVitrina > 0)
-      .sort((a, b) => b.totalComision - a.totalComision);
+      .filter((p: any) => p.prendasVendidas > 0 || p.prendasEnVitrina > 0)
+      .sort((a: any, b: any) => b.totalComision - a.totalComision);
 
     return NextResponse.json(ranking);
   } catch (error) {

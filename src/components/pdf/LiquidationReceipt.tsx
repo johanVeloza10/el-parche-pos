@@ -111,24 +111,38 @@ export const LiquidationReceipt: React.FC<LiquidationProps> = ({ liq, config }) 
 
         {/* DETALLES DE LIQUIDACION */}
         <View style={styles.row}>
-          <Text style={styles.bold}>LIQUIDACIÓN DE PROVEEDOR:</Text>
-          <Text style={[styles.bold, { color: '#7A1F3D' }]}>#{liq.id.substring(0, 8).toUpperCase()}</Text>
+          <Text style={styles.bold}>DOCUMENTO:</Text>
+          <Text style={[styles.bold, { color: '#7A1F3D' }]}>
+            {liq.proveedor.emiteFactura 
+              ? "FACTURA DE VENTA ADQUIRENTE" 
+              : "DOCUMENTO SOPORTE ADQUISICIÓN NO OBLIGADOS"} #{liq.id.substring(0, 8).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.row}>
           <Text>Proveedor / Diseñadora:</Text>
           <Text style={styles.bold}>{liq.proveedor.nombre}</Text>
         </View>
         <View style={styles.row}>
-          <Text>Documento:</Text>
+          <Text>Identificación:</Text>
           <Text>{liq.proveedor.tipoDocumento} {liq.proveedor.numeroDocumento}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text>Responsabilidad de IVA:</Text>
+          <Text style={styles.bold}>{liq.proveedor.responsableIva ? "Sí declara IVA (Común)" : "No responsable de IVA (Simplificado)"}</Text>
         </View>
         <View style={styles.row}>
           <Text>Periodo Liquidado:</Text>
           <Text>{fInicio} al {fFin}</Text>
         </View>
         <View style={styles.row}>
-          <Text>Estado:</Text>
-          <Text style={styles.bold}>{liq.estado}</Text>
+          <Text>Cuenta de Pago Destino:</Text>
+          <Text style={{ fontSize: 9 }}>{liq.proveedor.datosBancarios || "No registrada"}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text>Estado y Soporte:</Text>
+          <Text style={styles.bold}>
+            {liq.estado} {liq.fechaPago ? `(Pagado el ${new Date(liq.fechaPago).toLocaleDateString('es-CO')})` : ""}
+          </Text>
         </View>
 
         <View style={styles.divider} />

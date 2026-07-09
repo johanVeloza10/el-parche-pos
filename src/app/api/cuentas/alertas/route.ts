@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     for (const prov of proveedoresConVentasSinLiquidar) {
       const montoPendiente = prov.prendas.reduce(
-        (sum, p) => sum + (p.itemVenta?.paraProveedor || 0),
+        (sum: number, p: any) => sum + (p.itemVenta?.paraProveedor || 0),
         0
       );
       if (montoPendiente > 0) {

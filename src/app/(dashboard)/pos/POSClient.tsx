@@ -205,7 +205,13 @@ export default function POSClient() {
   const restanteMixto = total - sumaMixto;
 
   return (
-    <div className="h-auto md:h-full flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-7xl mx-auto pb-16 md:pb-0">
+    <div className="relative h-auto md:h-full flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-7xl mx-auto pb-16 md:pb-0 min-h-[500px]">
+      {/* Elegante watermark del logo de El Parche en fondo oscuro */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.015] bg-center bg-no-repeat bg-contain"
+        style={{ backgroundImage: "url('/brand/logo-original.jpeg')" }}
+      />
+
       
       {/* LADO IZQUIERDO: Buscador y Resultados */}
       <div className="flex-1 flex flex-col gap-4">

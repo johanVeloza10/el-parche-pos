@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     // Ajustar fin para cubrir todo el último día hasta las 23:59:59
     fin.setHours(23, 59, 59, 999);
 
-    const nuevaLiquidacion = await db.$transaction(async (tx) => {
+    const nuevaLiquidacion = await db.$transaction(async (tx: any) => {
       // 1. Buscar todas las ventas del proveedor en el rango de fechas que NO estén liquidadas
       const itemsPendientes = await tx.itemVenta.findMany({
         where: {
