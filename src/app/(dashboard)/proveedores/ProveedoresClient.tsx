@@ -358,6 +358,34 @@ export default function ProveedoresClient() {
                 )}
               </div>
 
+              {/* ACTA DE INGRESO DE HOY */}
+              <div className="border-b border-zinc-800 pb-4">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/proveedores/${provSeleccionado.id}/ingresos-hoy`);
+                      if (!res.ok) {
+                        const errData = await res.json();
+                        alert(errData.error || "No hay prendas ingresadas hoy para este proveedor");
+                        return;
+                      }
+                      const data = await res.json();
+                      if (data.prendas && data.prendas.length > 0) {
+                        window.open(`/api/proveedores/${provSeleccionado.id}/acta-hoy/pdf`, "_blank");
+                      } else {
+                        alert("No hay prendas ingresadas hoy para este proveedor");
+                      }
+                    } catch (err) {
+                      alert("Error al verificar los ingresos de hoy");
+                    }
+                  }}
+                  className="w-full bg-zinc-900 hover:bg-zinc-850 text-white font-bold py-3 rounded-xl border border-zinc-800 transition-colors text-xs flex justify-center items-center gap-2"
+                >
+                  <FileText className="w-4 h-4 text-[var(--color-primary)]" /> Acta de Ingresos de Hoy (PDF)
+                </button>
+              </div>
+
               {/* SECCIÓN GENERAR LIQUIDACIÓN */}
               <div className="bg-[var(--color-surface-elevated)]/30 border border-zinc-800 p-4 rounded-2xl flex flex-col gap-3">
                 <h4 className="font-heading text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide">Generar Liquidación</h4>

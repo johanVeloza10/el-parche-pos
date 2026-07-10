@@ -277,7 +277,7 @@ export default function ReceptionClient() {
               </div>
 
               <button 
-                onClick={() => window.open(`/api/prendas/${ultimaPrenda.id}/label`, '_blank')}
+                onClick={() => window.open(`/etiqueta/${ultimaPrenda.id}`, '_blank')}
                 className="w-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
               >
                 <Printer className="w-5 h-5" /> Imprimir Etiqueta
