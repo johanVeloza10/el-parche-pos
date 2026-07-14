@@ -36,6 +36,11 @@ export default function POSClient() {
   const [anulando, setAnulando] = useState(false);
   const [anularMensaje, setAnularMensaje] = useState("");
 
+  // Apartado
+  const [modalApartado, setModalApartado] = useState(false);
+  const [abonoApartado, setAbonoApartado] = useState("");
+  const [procesandoApartado, setProcesandoApartado] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -195,6 +200,72 @@ export default function POSClient() {
       setAnulando(false);
     }
   };
+
+  const procesarApartado = async () => {
+    if (carrito.length === 0) return;
+    if (!clienteSeleccionado) {
+      alert("Debes seleccionar o crear un cliente para hacer un apartado.");
+      setModalApartado(false);
+      return;
+    }
+    
+    const abonoNum = parseInt(abonoApartado || "0");
+    const totalActual = subtotal - totalDescuentos;
+    if (abonoNum <= 0 || abonoNum > totalActual) {
+      alert("El abono debe ser mayor a 0 y menor o igual al total.");
+      return;
+    }
+
+    let desglosePago = null;
+    if (medioPago === "MIXTO") {
+      const e = parseInt(montoEfectivo || "0");
+      const t = parseInt(montoTarjeta || "0");
+      const tr = parseInt(montoTransferencia || "0");
+      if (e + t + tr !== abonoNum) {
+        alert("En pago mixto, la suma debe ser igual al abono exacto.");
+        return;
+      }
+      desglosePago = { efectivo: e, tarjeta: t, transferencia: tr };
+    }
+
+    setProcesandoApartado(true);
+    try {
+      const res = await fetch("/api/apartados", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clienteId: clienteSeleccionado.id,
+          prendas: carrito.map(c => ({ id: c.id, precioVenta: c.precioVenta })),
+          abonoTotal: abonoNum,
+          medioPago,
+          desglosePago,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      alert("✅ Apartado creado exitosamente");
+      if (data.apartados && data.apartados.length > 0) {
+        window.open(`/api/apartados/${data.apartados[0]}/ticket`, '_blank');
+      }
+      
+      setCarrito([]);
+      setModalApartado(false);
+      setEfectivoRecibido("");
+      setMontoEfectivo("");
+      setMontoTarjeta("");
+      setMontoTransferencia("");
+      setClienteSeleccionado(null);
+      setAbonoApartado("");
+    } catch (error: any) {
+      alert("Error: " + error.message);
+    } finally {
+      setProcesandoApartado(false);
+      inputRef.current?.focus();
+    }
+  };
+
 
   const subtotal = carrito.reduce((sum, item) => sum + item.precioVenta, 0);
   const totalDescuentos = carrito.reduce((sum, item) => sum + (item.descuento || 0), 0);
@@ -364,13 +435,28 @@ export default function POSClient() {
             <span>${total.toLocaleString('es-CO')}</span>
           </div>
           
-          <button 
-            disabled={carrito.length === 0}
-            onClick={() => setModalAbierto(true)}
-            className="w-full mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-4 rounded-xl transition-all duration-300 text-lg shadow-[0_0_20px_rgba(252,209,22,0.15)] hover:shadow-[0_0_25px_rgba(252,209,22,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-          >
-            Cobrar ${total.toLocaleString('es-CO')}
-          </button>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <button 
+              disabled={carrito.length === 0}
+              onClick={() => {
+                if (!clienteSeleccionado) {
+                  alert("Por favor selecciona o crea un cliente antes de apartar.");
+                  return;
+                }
+                setModalApartado(true);
+              }}
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-extrabold py-3 rounded-xl transition-all duration-300 text-sm shadow-[0_0_15px_rgba(252,209,22,0.1)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              Apartar (Abono)
+            </button>
+            <button 
+              disabled={carrito.length === 0}
+              onClick={() => setModalAbierto(true)}
+              className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-3 rounded-xl transition-all duration-300 text-sm shadow-[0_0_20px_rgba(252,209,22,0.15)] hover:shadow-[0_0_25px_rgba(252,209,22,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              Cobrar ${total.toLocaleString('es-CO')}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -452,6 +538,98 @@ export default function POSClient() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL APARTADO */}
+      {modalApartado && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 backdrop-blur-md">
+          <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-3xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-heading text-2xl font-bold text-white flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+                  <Layers className="w-5 h-5 text-[var(--color-primary)]"/>
+                </div>
+                Crear Apartado
+              </h3>
+              <button onClick={() => setModalApartado(false)} className="text-zinc-500 hover:text-white transition-colors bg-zinc-800/50 rounded-full p-2 hover:bg-zinc-700">
+                <X className="w-5 h-5"/>
+              </button>
+            </div>
+            
+            <div className="bg-black/30 rounded-2xl p-5 mb-6 border border-zinc-800/50">
+              <div className="text-sm text-zinc-400 mb-1">Total de las prendas</div>
+              <div className="text-3xl font-black text-[var(--color-primary)]">${total.toLocaleString('es-CO')}</div>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-zinc-400 text-sm font-medium mb-2">Medio de pago del Abono</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: "EFECTIVO", icon: Banknote, label: "Efectivo" },
+                  { id: "TARJETA", icon: CreditCard, label: "Tarjeta" },
+                  { id: "TRANSFERENCIA", icon: Smartphone, label: "Transf" },
+                  { id: "MIXTO", icon: UserPlus, label: "Mixto" } // using userplus icon as placeholder for mixto
+                ].map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMedioPago(m.id as any)}
+                    className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all ${
+                      medioPago === m.id 
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-white shadow-[0_0_15px_rgba(252,209,22,0.15)]" 
+                        : "border-zinc-800 bg-black/20 text-zinc-400 hover:bg-black/40 hover:border-zinc-700"
+                    }`}
+                  >
+                    <m.icon className="w-5 h-5" />
+                    <span className="text-xs font-semibold">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {medioPago === "MIXTO" ? (
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div>
+                  <label className="block text-zinc-400 text-xs mb-1">Efectivo</label>
+                  <input type="number" value={montoEfectivo} onChange={e => setMontoEfectivo(e.target.value)} className="w-full bg-black/40 border border-zinc-800 rounded-xl p-2.5 text-white focus:border-[var(--color-primary)] outline-none text-center font-bold" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs mb-1">Tarjeta</label>
+                  <input type="number" value={montoTarjeta} onChange={e => setMontoTarjeta(e.target.value)} className="w-full bg-black/40 border border-zinc-800 rounded-xl p-2.5 text-white focus:border-[var(--color-primary)] outline-none text-center font-bold" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs mb-1">Transferencia</label>
+                  <input type="number" value={montoTransferencia} onChange={e => setMontoTransferencia(e.target.value)} className="w-full bg-black/40 border border-zinc-800 rounded-xl p-2.5 text-white focus:border-[var(--color-primary)] outline-none text-center font-bold" />
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6 relative">
+                <label className="block text-zinc-400 text-sm font-medium mb-2">Monto del Abono</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold">$</span>
+                  <input
+                    type="number"
+                    value={abonoApartado}
+                    onChange={(e) => setAbonoApartado(e.target.value)}
+                    className="w-full bg-black/40 border border-zinc-800 rounded-xl py-4 pl-8 pr-4 text-white text-2xl font-black focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-all"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            )}
+
+            <button 
+              disabled={procesandoApartado || (medioPago !== "MIXTO" && !abonoApartado) || (medioPago === "MIXTO" && !montoEfectivo && !montoTarjeta && !montoTransferencia)}
+              onClick={procesarApartado}
+              className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-4 rounded-xl transition-all duration-300 text-lg shadow-[0_0_20px_rgba(252,209,22,0.15)] hover:shadow-[0_0_25px_rgba(252,209,22,0.3)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {procesandoApartado ? (
+                <div className="animate-spin h-6 w-6 border-2 border-black border-t-transparent rounded-full" />
+              ) : (
+                <><CheckCircle className="w-6 h-6"/> Confirmar Apartado</>
+              )}
+            </button>
           </div>
         </div>
       )}

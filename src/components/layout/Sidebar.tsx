@@ -11,7 +11,8 @@ import {
   Wallet,
   Scissors,
   Tag,
-  X
+  X,
+  Layers
 } from "lucide-react"
 
 interface SidebarProps {
@@ -25,6 +26,7 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
 
   const navItems = [
     { name: "Punto de Venta", href: "/pos", icon: Store, roles: ["ADMIN", "VENDEDORA"] },
+    { name: "Apartados", href: "/apartados", icon: Layers, roles: ["ADMIN", "VENDEDORA"] },
     { name: "Inventario", href: "/inventario", icon: Package, roles: ["ADMIN", "VENDEDORA", "CONTADOR"] },
     { name: "Etiquetas", href: "/inventario/etiquetas", icon: Tag, roles: ["ADMIN", "VENDEDORA"] },
     { name: "Proveedores", href: "/proveedores", icon: Users, roles: ["ADMIN", "CONTADOR", "VENDEDORA"] },
