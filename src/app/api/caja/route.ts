@@ -16,6 +16,9 @@ export async function GET() {
         estado: "ABIERTA",
       },
       include: {
+        usuario: {
+          select: { nombre: true }
+        },
         _count: {
           select: { ventas: true },
         },
@@ -33,7 +36,7 @@ export async function GET() {
 }
 
 // POST — Open a new caja
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -55,10 +58,14 @@ export async function POST() {
       );
     }
 
+    const body = await req.json().catch(() => ({}));
+    const { fondoInicial } = body;
+
     const nuevaCaja = await db.cierreCaja.create({
       data: {
         usuarioId: session.user.id,
         estado: "ABIERTA",
+        fondoInicial: fondoInicial || 0,
       },
     });
 
@@ -105,8 +112,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Calculate diferencia = efectivoContado - ventasEfectivo
-    const diferencia = efectivoContado - cajaAbierta.ventasEfectivo;
+    // Calculate diferencia = efectivoContado - (fondoInicial + ventasEfectivo + abonosApartados - gastosEfectivo)
+    const efectivoEsperado = cajaAbierta.fondoInicial + cajaAbierta.ventasEfectivo + cajaAbierta.abonosApartados - cajaAbierta.gastosEfectivo;
+    const diferencia = efectivoContado - efectivoEsperado;
 
     const cajaCerrada = await db.cierreCaja.update({
       where: { id: cajaAbierta.id },
@@ -117,6 +125,9 @@ export async function PATCH(req: NextRequest) {
         observacion: observacion || null,
       },
       include: {
+        usuario: {
+          select: { nombre: true }
+        },
         _count: {
           select: { ventas: true },
         },

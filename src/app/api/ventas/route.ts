@@ -172,55 +172,49 @@ export async function POST(req: NextRequest) {
       return venta;
     });
 
-    // --- LLAMAR A FACTURACIÓN DIAN (Fuera de la transacción de DB principal) ---
+    // --- LLAMAR A FACTURACIÓN DIAN (Simulado) ---
     try {
-      const vdto = {
-        id: nuevaVenta.id,
-        total: nuevaVenta.total,
-        descuento: nuevaVenta.descuento,
-        medioPago: nuevaVenta.medioPago,
-        items: nuevaVenta.items.map((item: any) => ({
-          prendaId: item.prendaId,
-          precioVenta: item.precioVenta,
-          descripcion: item.prenda.descripcion
-        }))
-      };
+      const config = await db.configuracionNegocio.findUnique({ where: { id: "default" } });
+      const currentDeePos = config?.numeracionDeePos || 0;
+      const currentFactura = config?.numeracionFactura || 0;
 
-      let result;
       let tipoDoc = "DEE_POS";
+      let nuevoConsecutivo = 0;
 
       if (nuevaVenta.cliente) {
         tipoDoc = "FACTURA_ELECTRONICA";
-        const cdto = {
-          nombre: nuevaVenta.cliente.nombre,
-          tipoDocumento: nuevaVenta.cliente.tipoDocumento,
-          numeroDocumento: nuevaVenta.cliente.numeroDocumento,
-          email: nuevaVenta.cliente.email
-        };
-        result = await billingProvider.emitirFacturaElectronica(vdto, cdto);
+        nuevoConsecutivo = currentFactura + 1;
+        await db.configuracionNegocio.update({
+          where: { id: "default" },
+          data: { numeracionFactura: nuevoConsecutivo }
+        });
       } else {
-        result = await billingProvider.emitirDeePos(vdto);
+        nuevoConsecutivo = currentDeePos + 1;
+        await db.configuracionNegocio.update({
+          where: { id: "default" },
+          data: { numeracionDeePos: nuevoConsecutivo }
+        });
       }
 
-      // Crear DocumentoFiscal con la respuesta exitosa o rechazada
+      const prefix = tipoDoc === "FACTURA_ELECTRONICA" ? "FE-" : "POS-";
+      const numeroDoc = `${prefix}${nuevoConsecutivo.toString().padStart(6, '0')}`;
+
+      // Crear DocumentoFiscal
       await db.documentoFiscal.create({
         data: {
           ventaId: nuevaVenta.id,
           tipo: tipoDoc,
-          numero: result.numero,
-          cufe: result.cufe,
-          qrData: result.qrData,
-          estadoTransmision: result.estadoTransmision,
+          numero: numeroDoc,
+          estadoTransmision: "ACEPTADO",
           clienteNombre: nuevaVenta.cliente?.nombre || null,
           clienteDocumento: nuevaVenta.cliente?.numeroDocumento || null,
           clienteEmail: nuevaVenta.cliente?.email || null,
-          payloadEnviado: JSON.stringify(vdto),
-          respuestaProveedor: JSON.stringify(result.respuestaProveedor)
+          respuestaProveedor: JSON.stringify({ success: true, message: "Aceptado DIAN" })
         }
       });
 
     } catch (billingError) {
-      console.error("Fallo emitiendo documento DIAN, se guardará como PENDIENTE:", billingError);
+      console.error("Fallo generando documento:", billingError);
       
       // Creamos el documento como PENDIENTE para permitir retransmisión
       await db.documentoFiscal.create({
@@ -232,7 +226,7 @@ export async function POST(req: NextRequest) {
           clienteNombre: nuevaVenta.cliente?.nombre || null,
           clienteDocumento: nuevaVenta.cliente?.numeroDocumento || null,
           clienteEmail: nuevaVenta.cliente?.email || null,
-          respuestaProveedor: JSON.stringify({ error: "No se pudo conectar con el proveedor de facturación" })
+          respuestaProveedor: JSON.stringify({ error: "No se pudo generar consecutivo" })
         }
       });
     }

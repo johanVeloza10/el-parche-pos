@@ -20,11 +20,15 @@ interface CajaData {
   ventasEfectivo: number;
   ventasTarjeta: number;
   ventasTransferencia: number;
+  fondoInicial: number;
+  gastosEfectivo: number;
+  abonosApartados: number;
   totalVentasSistema: number;
   efectivoContado: number | null;
   diferencia: number | null;
   observacion: string | null;
   _count?: { ventas: number };
+  usuario?: { nombre: string } | null;
 }
 
 const formatCOP = (n: number) => `$${Math.round(n).toLocaleString("es-CO")}`;
@@ -38,6 +42,13 @@ export default function CajaDiariaClient() {
   const [efectivoContado, setEfectivoContado] = useState("");
   const [observacion, setObservacion] = useState("");
   const [error, setError] = useState("");
+  const [fondoInicial, setFondoInicial] = useState("");
+  
+  // Nuevo Gasto
+  const [modalGasto, setModalGasto] = useState(false);
+  const [gastoConcepto, setGastoConcepto] = useState("");
+  const [gastoMonto, setGastoMonto] = useState("");
+  const [guardandoGasto, setGuardandoGasto] = useState(false);
 
   const fetchCaja = async () => {
     try {
@@ -61,7 +72,11 @@ export default function CajaDiariaClient() {
     setAbriendo(true);
     setError("");
     try {
-      const res = await fetch("/api/caja", { method: "POST" });
+      const res = await fetch("/api/caja", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fondoInicial: parseInt(fondoInicial || "0") })
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setCaja(data.caja);
@@ -69,6 +84,29 @@ export default function CajaDiariaClient() {
       setError(err.message);
     } finally {
       setAbriendo(false);
+    }
+  };
+
+  const registrarGasto = async () => {
+    if (!gastoConcepto || !gastoMonto) return;
+    setGuardandoGasto(true);
+    try {
+      const res = await fetch("/api/caja/gastos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ concepto: gastoConcepto, monto: gastoMonto })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setModalGasto(false);
+      setGastoConcepto("");
+      setGastoMonto("");
+      fetchCaja(); // recargar
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setGuardandoGasto(false);
     }
   };
 
@@ -101,8 +139,12 @@ export default function CajaDiariaClient() {
     }
   };
 
+  const cajaEsperada = caja
+    ? caja.fondoInicial + caja.ventasEfectivo + caja.abonosApartados - caja.gastosEfectivo
+    : 0;
+
   const diferencia = efectivoContado
-    ? parseInt(efectivoContado) - (caja?.ventasEfectivo || 0)
+    ? parseInt(efectivoContado) - cajaEsperada
     : null;
 
   if (cargando) {
@@ -156,6 +198,18 @@ export default function CajaDiariaClient() {
               ventas que hagas se asociarán automáticamente a esta caja.
             </p>
           </div>
+          <div>
+            <label className="block text-sm font-bold text-white mb-2 font-sans text-left">
+              Fondo Inicial (Sencillo para cambios)
+            </label>
+            <input
+              type="number"
+              value={fondoInicial}
+              onChange={(e) => setFondoInicial(e.target.value)}
+              placeholder="Ej: 200000"
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl py-3 px-4 text-white text-xl font-sans focus:outline-none focus:border-[var(--color-primary)] text-center mb-4"
+            />
+          </div>
           <button
             onClick={abrirCaja}
             disabled={abriendo}
@@ -194,6 +248,38 @@ export default function CajaDiariaClient() {
                     {formatCOP(caja.diferencia || 0)}
                   </p>
                 </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button 
+                  onClick={() => window.open(`/api/caja/${caja.id}/pdf`, '_blank')}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2 rounded-lg transition-colors border border-zinc-700"
+                >
+                  Imprimir Arqueo
+                </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `*Cierre de Caja - El Parche*\n` +
+                    `Fecha: ${new Date(caja.fecha).toLocaleDateString("es-CO")}\n` +
+                    `Cajero: ${caja.usuario?.nombre || "N/A"}\n` +
+                    `---------------------------------\n` +
+                    `• Ventas Totales: ${formatCOP(caja.totalVentasSistema)}\n` +
+                    `  - Efectivo: ${formatCOP(caja.ventasEfectivo)}\n` +
+                    `  - Tarjeta: ${formatCOP(caja.ventasTarjeta)}\n` +
+                    `  - Transferencias: ${formatCOP(caja.ventasTransferencia)}\n` +
+                    `• Fondo Inicial: ${formatCOP(caja.fondoInicial)}\n` +
+                    `• Abonos Apartados: ${formatCOP(caja.abonosApartados)}\n` +
+                    `• Gastos Efectivo: ${formatCOP(caja.gastosEfectivo)}\n` +
+                    `---------------------------------\n` +
+                    `• Efectivo Esperado: ${formatCOP(caja.fondoInicial + caja.ventasEfectivo + caja.abonosApartados - caja.gastosEfectivo)}\n` +
+                    `• Efectivo Contado: ${formatCOP(caja.efectivoContado || 0)}\n` +
+                    `• Diferencia: ${formatCOP(caja.diferencia || 0)}`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition-colors border border-green-700 flex justify-center items-center gap-1.5"
+                >
+                  WhatsApp
+                </a>
               </div>
             </div>
           )}
@@ -249,17 +335,54 @@ export default function CajaDiariaClient() {
               />
               <TotalCard
                 icon={<CheckCircle className="w-5 h-5" />}
-                label="Total Día"
+                label="Total Ventas"
                 valor={caja.totalVentasSistema}
                 color="text-[var(--color-primary)]"
                 bold
               />
             </div>
 
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <TotalCard
+                icon={<Banknote className="w-5 h-5" />}
+                label="Fondo Inicial"
+                valor={caja.fondoInicial}
+                color="text-zinc-400"
+              />
+              <TotalCard
+                icon={<Banknote className="w-5 h-5" />}
+                label="Abonos (Aptdos)"
+                valor={caja.abonosApartados}
+                color="text-orange-400"
+              />
+              <TotalCard
+                icon={<Banknote className="w-5 h-5" />}
+                label="Gastos Día"
+                valor={caja.gastosEfectivo}
+                color="text-red-400"
+              />
+              <div className="bg-[var(--color-surface-elevated)]/30 rounded-2xl p-4 flex flex-col justify-center border border-[var(--color-primary)]/30 shadow-[0_0_15px_rgba(252,209,22,0.05)]">
+                <span className="text-[10px] text-[var(--color-primary)] uppercase tracking-wider font-bold mb-1">
+                  Efectivo Esperado
+                </span>
+                <span className="font-heading text-xl font-bold text-white">
+                  {formatCOP(cajaEsperada)}
+                </span>
+              </div>
+            </div>
+
             <p className="text-center text-xs text-[var(--color-text-muted)] font-sans">
               {caja._count?.ventas || 0} venta(s) registrada(s) en esta caja
             </p>
           </div>
+
+          {/* Botón de gastos */}
+          <button
+            onClick={() => setModalGasto(true)}
+            className="w-full border-stitch-white rounded-2xl py-4 text-white font-bold transition-all duration-300 flex justify-center items-center gap-2 hover:bg-[var(--color-surface-elevated)]"
+          >
+            Registrar Gasto en Efectivo
+          </button>
 
           {/* Botón de cerrar caja */}
           {!mostrarCierre ? (
@@ -277,12 +400,12 @@ export default function CajaDiariaClient() {
                 <Lock className="w-5 h-5 text-[var(--color-colombia-red)]" /> Cierre de Caja
               </h3>
 
-              <div className="bg-[var(--color-surface-elevated)]/30 p-4 rounded-2xl">
+              <div className="bg-[var(--color-surface-elevated)]/30 p-4 rounded-2xl border border-[var(--color-primary)]/30">
                 <p className="text-xs text-[var(--color-text-secondary)] font-sans mb-1">
-                  El sistema dice que en efectivo hay:
+                  Efectivo total que deberías tener en caja (Fondo + Efectivo + Abonos - Gastos):
                 </p>
-                <p className="font-heading text-2xl font-bold text-green-400">
-                  {formatCOP(caja.ventasEfectivo)}
+                <p className="font-heading text-3xl font-bold text-[var(--color-primary)]">
+                  {formatCOP(cajaEsperada)}
                 </p>
               </div>
 
@@ -365,6 +488,34 @@ export default function CajaDiariaClient() {
               </div>
             </div>
           )}
+        {/* MODAL DE GASTO */}
+        {modalGasto && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 backdrop-blur-md">
+            <div className="border-stitch-white bg-[var(--color-surface)] rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="font-heading text-xl font-bold text-white">Registrar Gasto</h3>
+                <button onClick={() => setModalGasto(false)} className="text-zinc-400 hover:text-white">✕</button>
+              </div>
+              <div className="flex flex-col gap-4 font-sans text-sm">
+                <div>
+                  <label className="block text-zinc-400 mb-1">Concepto *</label>
+                  <input type="text" value={gastoConcepto} onChange={e => setGastoConcepto(e.target.value)} placeholder="Ej: Compra de bolsas, pasajes..." className="w-full bg-black/30 border border-zinc-700 rounded-lg p-2.5 text-white focus:border-[var(--color-primary)] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">Valor en Efectivo *</label>
+                  <input type="number" value={gastoMonto} onChange={e => setGastoMonto(e.target.value)} placeholder="Ej: 15000" className="w-full bg-black/30 border border-zinc-700 rounded-lg p-2.5 text-white focus:border-[var(--color-primary)] outline-none" />
+                </div>
+                <button 
+                  onClick={registrarGasto}
+                  disabled={guardandoGasto || !gastoConcepto || !gastoMonto}
+                  className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-3 rounded-xl mt-2 transition-all disabled:opacity-40"
+                >
+                  {guardandoGasto ? "Guardando..." : "Guardar Gasto"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       )}
     </div>

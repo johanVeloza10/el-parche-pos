@@ -84,9 +84,12 @@ export const TicketReceipt: React.FC<TicketProps> = ({ venta, config }) => {
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>{config.nombreNegocio || "EL PARCHE DISEÑO"}</Text>
-          <Text style={styles.subtitle}>NIT: {config.nit || "Pendiente"}</Text>
-          <Text style={styles.subtitle}>{config.direccion || "Colombia"}</Text>
-          <Text style={styles.subtitle}>Tel: {config.telefono || "Pendiente"}</Text>
+          <Text style={styles.subtitle}>Ropa y accesorios</Text>
+          <Text style={styles.subtitle}>NIT: {config.nit || "52157597-9"}</Text>
+          <Text style={styles.subtitle}>{config.direccion || "Calle 43 # 19-26"}</Text>
+          <Text style={styles.subtitle}>Tel: {config.telefono || "3204014010"}</Text>
+          <Text style={styles.subtitle}>Régimen Simplificado</Text>
+          <Text style={styles.subtitle}>No somos responsables de IVA</Text>
         </View>
 
         <View style={styles.divider} />
@@ -94,7 +97,7 @@ export const TicketReceipt: React.FC<TicketProps> = ({ venta, config }) => {
         {/* INFO VENTA */}
         <View style={styles.row}>
           <Text>Recibo No:</Text>
-          <Text style={styles.bold}>{venta.id.substring(0, 8).toUpperCase()}</Text>
+          <Text style={styles.bold}>{venta.documentoFiscal?.numero || venta.id.substring(0, 8).toUpperCase()}</Text>
         </View>
         <View style={styles.row}>
           <Text>Fecha:</Text>
@@ -156,7 +159,7 @@ export const TicketReceipt: React.FC<TicketProps> = ({ venta, config }) => {
         {/* FOOTER */}
         <View style={styles.footer}>
           <Text style={{ marginBottom: 4 }}>¡GRACIAS POR TU COMPRA!</Text>
-          <Text>Prendas únicas con historia.</Text>
+          <Text style={styles.bold}>el parche colombiano hecho con amor</Text>
           <Text style={{ marginTop: 8 }}>Recibo generado por el sistema.</Text>
         </View>
       </Page>

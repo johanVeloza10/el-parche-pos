@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, ShoppingCart, Trash2, CreditCard, Banknote, Smartphone, X, UserPlus, CheckCircle, AlertTriangle, Layers, RotateCcw } from "lucide-react";
+import { Search, ShoppingCart, Trash2, CreditCard, Banknote, Smartphone, X, UserPlus, CheckCircle, AlertTriangle, Layers, RotateCcw, Percent, Ticket } from "lucide-react";
 
 export default function POSClient() {
   const [query, setQuery] = useState("");
@@ -26,7 +26,7 @@ export default function POSClient() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<any>(null);
   const [buscandoCliente, setBuscandoCliente] = useState(false);
   const [modalCliente, setModalCliente] = useState(false);
-  const [nuevoCliente, setNuevoCliente] = useState({ nombre: "", tipoDocumento: "CC", numeroDocumento: "", email: "", telefono: "" });
+  const [nuevoCliente, setNuevoCliente] = useState({ nombre: "", tipoDocumento: "CC", numeroDocumento: "", email: "", telefono: "", instagram: "", facebook: "" });
   const [creandoCliente, setCreandoCliente] = useState(false);
 
   // Anulación
@@ -40,6 +40,10 @@ export default function POSClient() {
   const [modalApartado, setModalApartado] = useState(false);
   const [abonoApartado, setAbonoApartado] = useState("");
   const [procesandoApartado, setProcesandoApartado] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState("");
+
+  // Venta exitosa
+  const [ventaExitosa, setVentaExitosa] = useState<{ id: string, total: number, telefono: string | null } | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +89,16 @@ export default function POSClient() {
     setCarrito(carrito.filter(c => c.id !== id));
   };
 
+  const aplicarDescuento = (id: string, porcentaje: number) => {
+    setCarrito(carrito.map(c => {
+      if (c.id === id) {
+        const descuento = Math.round(c.precioVenta * porcentaje / 100);
+        return { ...c, descuento, descuentoPct: porcentaje };
+      }
+      return c;
+    }));
+  };
+
   const buscarClientes = async (q: string) => {
     setClienteQuery(q);
     if (q.length < 3) {
@@ -118,7 +132,7 @@ export default function POSClient() {
       if (!res.ok) throw new Error(data.error);
       setClienteSeleccionado(data);
       setModalCliente(false);
-      setNuevoCliente({ nombre: "", tipoDocumento: "CC", numeroDocumento: "", email: "", telefono: "" });
+      setNuevoCliente({ nombre: "", tipoDocumento: "CC", numeroDocumento: "", email: "", telefono: "", instagram: "", facebook: "" });
     } catch (error: any) {
       alert("Error: " + error.message);
     } finally {
@@ -157,7 +171,12 @@ export default function POSClient() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      window.open(`/api/ventas/${data.ventaId}/ticket`, '_blank');
+      // Show success modal instead of auto-opening PDF
+      setVentaExitosa({
+        id: data.ventaId,
+        total: total,
+        telefono: clienteSeleccionado?.telefono || null
+      });
       
       // Reset state
       setCarrito([]);
@@ -404,15 +423,37 @@ export default function POSClient() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium text-white">{item.descripcion}</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">{item.codigo}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{item.codigo} · {item.talla}</p>
                   </div>
                   <button onClick={() => quitarDelCarrito(item.id)} className="text-red-400 hover:text-red-300 transition-colors p-1">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="flex justify-between items-center mt-2">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Precio</span>
-                  <span className="font-medium text-white">${item.precioVenta.toLocaleString('es-CO')}</span>
+                  <span className={`font-medium ${item.descuento > 0 ? 'line-through text-zinc-500 text-sm' : 'text-white'}`}>${item.precioVenta.toLocaleString('es-CO')}</span>
+                </div>
+                {item.descuento > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-400 flex items-center gap-1"><Percent className="w-3 h-3"/> -{item.descuentoPct}%</span>
+                    <span className="font-bold text-green-400">${(item.precioVenta - item.descuento).toLocaleString('es-CO')}</span>
+                  </div>
+                )}
+                {/* Discount buttons */}
+                <div className="flex gap-1 flex-wrap mt-1">
+                  {[5, 10, 15, 20, 25, 30, 40, 50].map(pct => (
+                    <button
+                      key={pct}
+                      onClick={() => aplicarDescuento(item.id, item.descuentoPct === pct ? 0 : pct)}
+                      className={`text-[10px] px-2 py-1 rounded-lg font-bold transition-all ${
+                        item.descuentoPct === pct
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                          : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:text-white hover:border-zinc-600'
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
                 </div>
               </div>
             ))
@@ -496,6 +537,16 @@ export default function POSClient() {
                 <label className="block text-zinc-400 mb-1">Teléfono</label>
                 <input type="text" value={nuevoCliente.telefono} onChange={e => setNuevoCliente({...nuevoCliente, telefono: e.target.value})} className="w-full bg-black/30 border border-zinc-700 rounded-lg p-2.5 text-white focus:border-[var(--color-primary)] outline-none" />
               </div>
+              <div className="flex gap-3">
+                <div className="w-1/2">
+                  <label className="block text-zinc-400 mb-1">Instagram (opcional)</label>
+                  <input type="text" value={nuevoCliente.instagram} onChange={e => setNuevoCliente({...nuevoCliente, instagram: e.target.value})} placeholder="@usuario" className="w-full bg-black/30 border border-zinc-700 rounded-lg p-2.5 text-white focus:border-[var(--color-primary)] outline-none" />
+                </div>
+                <div className="w-1/2">
+                  <label className="block text-zinc-400 mb-1">Facebook (opcional)</label>
+                  <input type="text" value={nuevoCliente.facebook} onChange={e => setNuevoCliente({...nuevoCliente, facebook: e.target.value})} placeholder="Nombre / Perfil" className="w-full bg-black/30 border border-zinc-700 rounded-lg p-2.5 text-white focus:border-[var(--color-primary)] outline-none" />
+                </div>
+              </div>
               <button 
                 onClick={crearCliente}
                 disabled={creandoCliente || !nuevoCliente.nombre || !nuevoCliente.numeroDocumento}
@@ -539,6 +590,47 @@ export default function POSClient() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* MODAL VENTA EXITOSA */}
+      {ventaExitosa && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[70] backdrop-blur-md">
+           <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-3xl w-full max-w-sm p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center">
+               <CheckCircle className="w-10 h-10 text-green-400" />
+             </div>
+             <div>
+               <h2 className="font-heading text-3xl font-bold text-white mb-1">¡Venta Exitosa!</h2>
+               <p className="text-zinc-400 text-sm">Total: ${ventaExitosa.total.toLocaleString('es-CO')}</p>
+             </div>
+             
+             <div className="flex flex-col gap-3 w-full mt-2">
+               <button 
+                 onClick={() => window.open(`/api/ventas/${ventaExitosa.id}/ticket`, '_blank')} 
+                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-zinc-700"
+               >
+                 <Ticket className="w-5 h-5"/> Imprimir Ticket
+               </button>
+               
+               <a 
+                 href={`https://wa.me/${ventaExitosa.telefono ? (ventaExitosa.telefono.startsWith('57') ? ventaExitosa.telefono : `57${ventaExitosa.telefono}`) : ''}?text=Hola!%20Gracias%20por%20tu%20compra%20en%20El%20Parche.%20Tu%20ticket%20es%20el%20%23${ventaExitosa.id}`} 
+                 target="_blank" 
+                 rel="noreferrer" 
+                 className={`w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${!ventaExitosa.telefono ? 'opacity-50 pointer-events-none' : ''}`}
+                 onClick={(e) => { if (!ventaExitosa.telefono) { e.preventDefault(); alert('El cliente no tiene teléfono registrado.'); } }}
+               >
+                 <Smartphone className="w-5 h-5"/> Enviar por WhatsApp
+               </a>
+             </div>
+             
+             <button 
+               onClick={() => setVentaExitosa(null)} 
+               className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-3.5 rounded-xl mt-2 transition-all"
+             >
+               Nueva Venta
+             </button>
+           </div>
         </div>
       )}
 
@@ -720,6 +812,13 @@ export default function POSClient() {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="px-4 sm:px-6 mb-3 flex items-center gap-2">
+              <input type="checkbox" id="alarmaCheck" disabled className="w-4 h-4 accent-[var(--color-primary)] cursor-not-allowed opacity-50" />
+              <label htmlFor="alarmaCheck" className="text-xs text-zinc-500 font-sans cursor-not-allowed select-none">
+                Alarma antirrobo retirada (deshabilitado por ahora)
+              </label>
             </div>
 
             <div className="p-4 sm:p-6 bg-[var(--color-surface-elevated)]/30 border-t border-[var(--color-surface-elevated)]">

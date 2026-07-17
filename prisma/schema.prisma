@@ -16,10 +16,10 @@ datasource db {
 // -----------------------------------------------------------------------------
 model ConfiguracionNegocio {
   id                    String  @id @default("default")
-  nombreNegocio         String  @default("El Parche Diseño")
-  nit                   String  @default("123456789-0")
-  direccion             String  @default("Colombia")
-  telefono              String  @default("")
+  nombreNegocio         String  @default("El Parche")
+  nit                   String  @default("52157597-9")
+  direccion             String  @default("Calle 43 #19-26")
+  telefono              String  @default("3204014010")
   email                 String  @default("contacto@elparche.co")
   
   regimenIva            Boolean @default(false)
@@ -140,9 +140,13 @@ model Cliente {
   numeroDocumento String
   email           String?
   telefono        String?
+  instagram       String?
+  facebook        String?
+  redesSociales   String?  // JSON for other social media
   
   ventas          Venta[]
   apartados       Apartado[]
+  notasCredito    NotaCredito[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -176,6 +180,7 @@ model Venta {
   cierreCaja             CierreCaja? @relation(fields: [cierreCajaId], references: [id])
   
   items                  ItemVenta[]
+  notasCredito           NotaCredito[]
   documentoFiscal        DocumentoFiscal?
   
   createdAt              DateTime @default(now())
@@ -364,6 +369,9 @@ model CierreCaja {
   ventasEfectivo      Int      @default(0)
   ventasTarjeta       Int      @default(0)
   ventasTransferencia Int      @default(0)
+  fondoInicial        Int      @default(0)
+  gastosEfectivo      Int      @default(0)
+  abonosApartados     Int      @default(0)
   totalVentasSistema  Int      @default(0)
   
   efectivoContado     Int?
@@ -391,6 +399,21 @@ model Apartado {
   fechaLimite   DateTime
   estado        String   @default("VIGENTE") // VIGENTE|COMPLETADO|VENCIDO
   observaciones String?
+}
+
+model NotaCredito {
+  id                String   @id @default(cuid())
+  ventaOriginalId   String
+  venta             Venta    @relation(fields: [ventaOriginalId], references: [id])
+  clienteId         String?
+  cliente           Cliente? @relation(fields: [clienteId], references: [id])
+  tipo              String   // DEVOLUCION | CAMBIO
+  motivo            String
+  valor             Int
+  estado            String   @default("VIGENTE") // VIGENTE | USADA | VENCIDA
+  usadaEnVentaId    String?
+  fechaVencimiento  DateTime
+  createdAt         DateTime @default(now())
 }
 
 model AuditLog {

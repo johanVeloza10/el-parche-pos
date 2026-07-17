@@ -25,7 +25,8 @@ export async function GET(
           include: {
             prenda: { select: { descripcion: true, codigo: true } }
           }
-        }
+        },
+        documentoFiscal: true
       }
     });
 

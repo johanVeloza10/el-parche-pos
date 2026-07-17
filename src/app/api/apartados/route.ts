@@ -138,6 +138,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      updateData.abonosApartados = { increment: abonoTotal };
       updateData.totalVentasSistema = { increment: abonoTotal };
 
       await tx.cierreCaja.update({

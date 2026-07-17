@@ -15,7 +15,7 @@ export async function PATCH(
 
     const { id } = await context.params;
     const body = await req.json();
-    const { precioVenta, estado, valorProveedor, categoria, descripcion } = body;
+    const { precioVenta, estado, valorProveedor, categoria, descripcion, motivo } = body;
 
     // Buscar prenda existente
     const prenda = await db.prenda.findUnique({
@@ -89,9 +89,9 @@ export async function PATCH(
       data: {
         entidad: "Prenda",
         entidadId: id,
-        accion: "ACTUALIZACION_PRENDA",
+        accion: estado === "DEVUELTA_PROVEEDOR" ? "DEVOLUCION_PROVEEDOR" : "ACTUALIZACION_PRENDA",
         usuarioId: session.user.id,
-        motivo: "Edición rápida desde inventario",
+        motivo: motivo || (estado === "DEVUELTA_PROVEEDOR" ? "Devolución a Diseñador/Proveedor" : "Edición rápida desde inventario"),
         valorAnterior: JSON.stringify({ estado: prenda.estado, precioVenta: prenda.precioVenta, valorProveedor: prenda.valorProveedor }),
         valorNuevo: JSON.stringify(updateData)
       }

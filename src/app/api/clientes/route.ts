@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       orderBy: { nombre: "asc" },
     });
 
-    return NextResponse.json({ clientes });
+    return NextResponse.json(clientes);
   } catch (error: any) {
     console.error("Error buscando clientes:", error);
     return NextResponse.json(
@@ -63,10 +63,12 @@ export async function POST(req: NextRequest) {
         numeroDocumento,
         email: email || null,
         telefono: telefono || null,
+        instagram: body.instagram || null,
+        facebook: body.facebook || null,
       },
     });
 
-    return NextResponse.json({ cliente }, { status: 201 });
+    return NextResponse.json(cliente, { status: 201 });
   } catch (error: any) {
     console.error("Error creando cliente:", error);
     return NextResponse.json(

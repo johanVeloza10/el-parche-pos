@@ -121,6 +121,13 @@ export default function InventoryClient() {
   };
 
   const guardarEdicion = async (id: string) => {
+    let motivo = "";
+    if (editEstado === "DEVUELTA_PROVEEDOR") {
+      const resp = prompt("Ingrese el motivo de la devolución al proveedor (ej: Plazo de vitrina vencido):");
+      if (resp === null) return; // User cancelled
+      motivo = resp;
+    }
+
     setGuardandoEdicion(true);
     try {
       const res = await fetch(`/api/prendas/${id}`, {
@@ -129,7 +136,8 @@ export default function InventoryClient() {
         body: JSON.stringify({
           precioVenta: parseInt(editPrecioVenta),
           valorProveedor: parseInt(editValorProveedor),
-          estado: editEstado
+          estado: editEstado,
+          motivo: motivo || undefined
         })
       });
 
