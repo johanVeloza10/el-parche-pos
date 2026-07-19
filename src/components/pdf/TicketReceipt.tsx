@@ -4,24 +4,24 @@ import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/rendere
 // Register standard fonts or use defaults. For 80mm printers, Helvetica is usually fine.
 const styles = StyleSheet.create({
   page: {
-    padding: 15,
+    padding: 10,
     fontFamily: 'Helvetica',
-    fontSize: 10,
+    fontSize: 8,
     backgroundColor: '#ffffff',
     color: '#000000',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     marginBottom: 4,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#444444',
     textAlign: 'center',
     marginBottom: 2,
@@ -30,12 +30,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#000000',
     borderBottomStyle: 'dashed',
-    marginVertical: 8,
+    marginVertical: 6,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   bold: {
     fontFamily: 'Helvetica-Bold',
@@ -43,29 +43,29 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   itemDesc: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 8,
   },
   itemPrice: {
-    width: 60,
+    width: 50,
     textAlign: 'right',
   },
   totalSection: {
-    marginTop: 10,
+    marginTop: 8,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
-    fontSize: 12,
+    marginBottom: 3,
+    fontSize: 10,
   },
   footer: {
-    marginTop: 20,
+    marginTop: 15,
     textAlign: 'center',
-    fontSize: 8,
+    fontSize: 7,
     color: '#444444',
   }
 });
