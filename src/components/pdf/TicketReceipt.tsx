@@ -4,7 +4,10 @@ import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/rendere
 // Register standard fonts or use defaults. For 80mm printers, Helvetica is usually fine.
 const styles = StyleSheet.create({
   page: {
-    padding: 10,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 18,
+    paddingRight: 18,
     fontFamily: 'Helvetica',
     fontSize: 8,
     backgroundColor: '#ffffff',

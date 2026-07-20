@@ -16,18 +16,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
+    const searchTerm = q.trim();
+
     // Buscamos prendas en vitrina que coincidan con el código de barras, código interno o descripción
     const prendas = await db.prenda.findMany({
       where: {
         estado: "EN_VITRINA",
         deletedAt: null,
         OR: [
-          { codigoBarras: { equals: q } },
-          { codigo: { contains: q } }, // SQLite is case-insensitive with Prisma 'contains' if configured, but let's just do standard contains
-          { descripcion: { contains: q } },
+          { codigoBarras: { equals: searchTerm, mode: 'insensitive' } },
+          { codigo: { contains: searchTerm, mode: 'insensitive' } },
+          { descripcion: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
-      take: 20, // Limitamos a 20 resultados para no saturar la UI
+      take: 20,
       include: {
         proveedor: {
           select: { nombre: true },

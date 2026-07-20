@@ -65,10 +65,15 @@ export default function POSClient() {
         const filtradas = data.filter((p: any) => !carrito.some(c => c.id === p.id));
         setResultados(filtradas);
         
-        if (filtradas.length === 1 && (filtradas[0].codigoBarras === q || filtradas[0].codigo === q)) {
-          agregarAlCarrito(filtradas[0]);
-          setQuery("");
-          setResultados([]);
+        const cleanQ = q.trim().toUpperCase();
+        if (filtradas.length === 1) {
+          const prodBarcode = (filtradas[0].codigoBarras || '').trim().toUpperCase();
+          const prodCode = (filtradas[0].codigo || '').trim().toUpperCase();
+          if (prodBarcode === cleanQ || prodCode === cleanQ) {
+            agregarAlCarrito(filtradas[0]);
+            setQuery("");
+            setResultados([]);
+          }
         }
       }
     } catch (error) {
