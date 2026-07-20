@@ -84,12 +84,12 @@ export default function DevolucionesClient() {
       <div className="border-stitch-white p-6 rounded-3xl bg-black/30">
         <form onSubmit={buscarVenta} className="flex gap-4 items-end">
           <div className="flex-1">
-            <label className="block text-sm font-bold text-zinc-400 mb-2">ID de la Venta (Aparece en el recibo)</label>
+            <label className="block text-sm font-bold text-zinc-400 mb-2">Nº de Recibo o ID de Venta (Aparece en el recibo)</label>
             <input 
               type="text" 
               value={ventaIdQuery} 
               onChange={e => setVentaIdQuery(e.target.value)}
-              placeholder="Ej: cm4t..."
+              placeholder="Ej: POS-000001 o cm4t..."
               className="w-full bg-black/50 border border-zinc-700 rounded-xl p-3 text-white focus:border-[var(--color-primary)] outline-none font-mono"
             />
           </div>
