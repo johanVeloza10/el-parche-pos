@@ -83,6 +83,40 @@ export default function POSClient() {
     }
   };
 
+  const manejarEnterScan = async (q: string) => {
+    const cleanQ = q.trim();
+    if (!cleanQ) return;
+    setBuscando(true);
+    try {
+      const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(cleanQ)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const filtradas = data.filter((p: any) => !carrito.some(c => c.id === p.id));
+        
+        const coincidenciaExacta = filtradas.find((p: any) => 
+          (p.codigoBarras || '').trim().toUpperCase() === cleanQ.toUpperCase() ||
+          (p.codigo || '').trim().toUpperCase() === cleanQ.toUpperCase()
+        );
+        
+        if (coincidenciaExacta) {
+          agregarAlCarrito(coincidenciaExacta);
+          setQuery("");
+          setResultados([]);
+        } else if (filtradas.length === 1) {
+          agregarAlCarrito(filtradas[0]);
+          setQuery("");
+          setResultados([]);
+        } else if (filtradas.length > 0) {
+          setResultados(filtradas);
+        }
+      }
+    } catch (error) {
+      console.error("Error en escaneo:", error);
+    } finally {
+      setBuscando(false);
+    }
+  };
+
   const agregarAlCarrito = (prenda: any) => {
     setCarrito([...carrito, { ...prenda, descuento: 0 }]);
     setQuery("");
@@ -334,6 +368,12 @@ export default function POSClient() {
             placeholder="Escanea el código de barras o busca prenda..."
             value={query}
             onChange={(e) => buscarPrendas(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                manejarEnterScan(query);
+              }
+            }}
           />
           {buscando && (
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
