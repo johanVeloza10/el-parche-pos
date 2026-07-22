@@ -118,6 +118,13 @@ export default function POSClient() {
   };
 
   const agregarAlCarrito = (prenda: any) => {
+    if (prenda.estado !== "EN_VITRINA") {
+      alert(`⚠️ Atención: La prenda "${prenda.descripcion}" (${prenda.codigo}) figura como ${prenda.estado} y no está disponible para venta en vitrina.`);
+      setQuery("");
+      setResultados([]);
+      inputRef.current?.focus();
+      return;
+    }
     setCarrito([...carrito, { ...prenda, descuento: 0 }]);
     setQuery("");
     setResultados([]);
@@ -394,7 +401,14 @@ export default function POSClient() {
                   </div>
                   <div>
                     <p className="font-medium text-white line-clamp-1">{prenda.descripcion}</p>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{prenda.codigo}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-[var(--color-text-secondary)]">{prenda.codigo}</p>
+                      {prenda.estado !== 'EN_VITRINA' && (
+                        <span className="text-[10px] bg-red-900/80 text-red-200 px-1.5 py-0.5 rounded font-bold uppercase">
+                          {prenda.estado}
+                        </span>
+                      )}
+                    </div>
                     <p className="font-semibold text-[var(--color-primary)] mt-1">${prenda.precioVenta.toLocaleString('es-CO')}</p>
                   </div>
                 </div>

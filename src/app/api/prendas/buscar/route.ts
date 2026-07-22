@@ -18,13 +18,14 @@ export async function GET(req: NextRequest) {
 
     const searchTerm = q.trim();
 
-    // Buscamos prendas en vitrina que coincidan con el código de barras, código interno o descripción
+    // Buscamos prendas que coincidan con código de barras, código interno o descripción
     const prendas = await db.prenda.findMany({
       where: {
-        estado: "EN_VITRINA",
         deletedAt: null,
         OR: [
           { codigoBarras: { equals: searchTerm, mode: 'insensitive' } },
+          { codigoBarras: { contains: searchTerm, mode: 'insensitive' } },
+          { codigo: { equals: searchTerm, mode: 'insensitive' } },
           { codigo: { contains: searchTerm, mode: 'insensitive' } },
           { descripcion: { contains: searchTerm, mode: 'insensitive' } },
         ],
