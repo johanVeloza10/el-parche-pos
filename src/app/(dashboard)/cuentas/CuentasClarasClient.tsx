@@ -96,9 +96,9 @@ export default function CuentasClarasClient() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/cuentas").then((r) => r.json()),
-      fetch("/api/cuentas/proveedores-ranking").then((r) => r.json()),
-      fetch("/api/cuentas/alertas").then((r) => r.json()),
+      fetch("/api/cuentas", { cache: "no-store" }).then((r) => r.json()),
+      fetch("/api/cuentas/proveedores-ranking", { cache: "no-store" }).then((r) => r.json()),
+      fetch("/api/cuentas/alertas", { cache: "no-store" }).then((r) => r.json()),
     ])
       .then(([cuentas, ranking, alertasData]) => {
         setDatosMensuales(cuentas);

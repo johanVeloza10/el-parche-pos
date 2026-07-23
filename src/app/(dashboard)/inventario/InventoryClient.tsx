@@ -60,7 +60,7 @@ export default function InventoryClient() {
 
   const cargarProveedores = async () => {
     try {
-      const res = await fetch("/api/proveedores");
+      const res = await fetch("/api/proveedores", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setProveedores(data);

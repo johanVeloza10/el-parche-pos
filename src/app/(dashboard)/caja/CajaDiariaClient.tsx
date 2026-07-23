@@ -52,7 +52,7 @@ export default function CajaDiariaClient() {
 
   const fetchCaja = async () => {
     try {
-      const res = await fetch("/api/caja");
+      const res = await fetch("/api/caja", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setCaja(data.caja || null);

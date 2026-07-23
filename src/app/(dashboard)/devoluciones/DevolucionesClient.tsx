@@ -21,7 +21,7 @@ export default function DevolucionesClient() {
     setVentaResult(null);
 
     try {
-      const res = await fetch(`/api/ventas/${ventaIdQuery}`);
+      const res = await fetch(`/api/ventas/${ventaIdQuery}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Venta no encontrada");
       setVentaResult(data);

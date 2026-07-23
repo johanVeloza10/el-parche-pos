@@ -25,7 +25,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ caja: cajaAbierta });
+    return NextResponse.json({ caja: cajaAbierta }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {
     console.error("Error obteniendo caja:", error);
     return NextResponse.json(
@@ -134,7 +134,7 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ caja: cajaCerrada });
+    return NextResponse.json({ caja: cajaCerrada }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {
     console.error("Error cerrando caja:", error);
     return NextResponse.json(

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" }
     });
 
-    return NextResponse.json(liquidaciones);
+    return NextResponse.json(liquidaciones, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error obteniendo liquidaciones:", error);

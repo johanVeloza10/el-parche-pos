@@ -27,7 +27,7 @@ export async function GET(
       return new NextResponse("Liquidación no encontrada", { status: 404 });
     }
 
-    return NextResponse.json(liquidacion);
+    return NextResponse.json(liquidacion, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error obteniendo liquidación:", error);
@@ -72,7 +72,7 @@ export async function PUT(
       }
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(updated, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error actualizando liquidación:", error);

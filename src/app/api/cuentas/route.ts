@@ -164,7 +164,7 @@ export async function GET(req: NextRequest) {
     // Ordenar meses cronológicamente
     const resultadoOrdenado = Object.values(mensualidades).sort((a, b) => a.mes.localeCompare(b.mes));
 
-    return NextResponse.json(resultadoOrdenado);
+    return NextResponse.json(resultadoOrdenado, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error en API de cuentas:", error);

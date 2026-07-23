@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get("q");
 
     if (!q) {
-      return NextResponse.json([]);
+      return NextResponse.json([], { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
     }
 
     const searchTerm = q.trim();
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(prendas);
+    return NextResponse.json(prendas, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error) {
     console.error("Error buscando prendas:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json(resultado);
+    return NextResponse.json(resultado, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error obteniendo proveedores:", error);

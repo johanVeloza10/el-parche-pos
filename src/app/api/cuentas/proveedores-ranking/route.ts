@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       .filter((p: any) => p.prendasVendidas > 0 || p.prendasEnVitrina > 0)
       .sort((a: any, b: any) => b.totalComision - a.totalComision);
 
-    return NextResponse.json(ranking);
+    return NextResponse.json(ranking, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error) {
     console.error("Error en ranking de proveedores:", error);
     return NextResponse.json(

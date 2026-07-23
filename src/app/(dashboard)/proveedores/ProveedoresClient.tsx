@@ -79,7 +79,7 @@ export default function ProveedoresClient() {
   const fetchProveedores = async () => {
     setCargando(true);
     try {
-      const res = await fetch("/api/proveedores");
+      const res = await fetch("/api/proveedores", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setProveedores(data);
@@ -97,7 +97,7 @@ export default function ProveedoresClient() {
 
   const fetchHistorialLiquidaciones = async (proveedorId: string) => {
     try {
-      const res = await fetch(`/api/liquidaciones?proveedorId=${proveedorId}`);
+      const res = await fetch(`/api/liquidaciones?proveedorId=${proveedorId}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setHistorialLiquidaciones(data);
@@ -364,7 +364,7 @@ export default function ProveedoresClient() {
                   type="button"
                   onClick={async () => {
                     try {
-                      const res = await fetch(`/api/proveedores/${provSeleccionado.id}/ingresos-hoy`);
+                      const res = await fetch(`/api/proveedores/${provSeleccionado.id}/ingresos-hoy`, { cache: "no-store" });
                       if (!res.ok) {
                         const errData = await res.json();
                         alert(errData.error || "No hay prendas ingresadas hoy para este proveedor");

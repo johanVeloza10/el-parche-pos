@@ -38,7 +38,7 @@ export default function ApartadosClient() {
   const fetchApartados = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/apartados");
+      const res = await fetch("/api/apartados", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setApartados(data);

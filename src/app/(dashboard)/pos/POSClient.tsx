@@ -59,7 +59,7 @@ export default function POSClient() {
     }
     setBuscando(true);
     try {
-      const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(q)}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         const filtradas = data.filter((p: any) => !carrito.some(c => c.id === p.id));
@@ -88,7 +88,7 @@ export default function POSClient() {
     if (!cleanQ) return;
     setBuscando(true);
     try {
-      const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(cleanQ)}`);
+      const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(cleanQ)}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         const filtradas = data.filter((p: any) => !carrito.some(c => c.id === p.id));
@@ -153,7 +153,7 @@ export default function POSClient() {
     }
     setBuscandoCliente(true);
     try {
-      const res = await fetch(`/api/clientes?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/clientes?q=${encodeURIComponent(q)}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setClientesResultados(data);

@@ -32,7 +32,7 @@ export default function ReceptionClient() {
 
   const fetchProveedores = async () => {
     try {
-      const res = await fetch("/api/proveedores");
+      const res = await fetch("/api/proveedores", { cache: "no-store" });
       const data = await res.json();
       setProveedores(data);
       if (data.length > 0) {

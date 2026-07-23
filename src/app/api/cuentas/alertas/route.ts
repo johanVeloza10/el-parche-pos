@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
     const ordenUrgencia = { alta: 0, media: 1, baja: 2 };
     alertas.sort((a, b) => ordenUrgencia[a.urgencia] - ordenUrgencia[b.urgencia]);
 
-    return NextResponse.json(alertas);
+    return NextResponse.json(alertas, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error) {
     console.error("Error en alertas:", error);
     return NextResponse.json(

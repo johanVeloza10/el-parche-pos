@@ -39,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: "Venta no encontrada" }, { status: 404 });
     }
 
-    return NextResponse.json(venta);
+    return NextResponse.json(venta, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error: any) {
     console.error("Error obteniendo detalles de venta:", error);

@@ -15,7 +15,7 @@ export default function ReportesClient() {
   const fetchIndicadores = async () => {
     setCargando(true);
     try {
-      const res = await fetch(`/api/reportes?mes=${mesConsultado}`);
+      const res = await fetch(`/api/reportes?mes=${mesConsultado}`, { cache: "no-store" });
       if (res.ok) {
         setData(await res.json());
       }

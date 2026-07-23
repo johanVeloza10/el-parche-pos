@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Apartado no encontrado" }, { status: 404 });
     }
 
-    return NextResponse.json(apartado);
+    return NextResponse.json(apartado, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {
     console.error("Error al obtener apartado:", error);
     return NextResponse.json(

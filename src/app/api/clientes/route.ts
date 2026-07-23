@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get("q") || "";
 
     if (!q.trim()) {
-      return NextResponse.json({ clientes: [] });
+      return NextResponse.json({ clientes: [] }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
     }
 
     const clientes = await db.cliente.findMany({
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       orderBy: { nombre: "asc" },
     });
 
-    return NextResponse.json(clientes);
+    return NextResponse.json(clientes, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {
     console.error("Error buscando clientes:", error);
     return NextResponse.json(

@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(apartados);
+    return NextResponse.json(apartados, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {
     console.error("Error al obtener apartados:", error);
     return NextResponse.json(

@@ -19,7 +19,7 @@ export default function EtiquetasPage() {
 
   useEffect(() => {
     // Fetch last 50 garments for easy selection
-    fetch("/api/prendas")
+    fetch("/api/prendas", { cache: "no-store" })
       .then(r => r.json())
       .then(data => {
         if (data.prendas) setPrendas(data.prendas);

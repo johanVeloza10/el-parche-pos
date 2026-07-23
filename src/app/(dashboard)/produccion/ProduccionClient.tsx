@@ -61,10 +61,10 @@ export default function ProduccionClient() {
     setCargando(true);
     try {
       if (activeTab === "materiales") {
-        const res = await fetch("/api/produccion/materiales");
+        const res = await fetch("/api/produccion/materiales", { cache: "no-store" });
         if (res.ok) setMateriales(await res.json());
       } else if (activeTab === "ordenes") {
-        const res = await fetch("/api/produccion/ordenes");
+        const res = await fetch("/api/produccion/ordenes", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           setOrdenes(data);
@@ -74,7 +74,7 @@ export default function ProduccionClient() {
           }
         }
       } else if (activeTab === "costos") {
-        const res = await fetch(`/api/produccion/costos?mes=${mesCosto}`);
+        const res = await fetch(`/api/produccion/costos?mes=${mesCosto}`, { cache: "no-store" });
         if (res.ok) setCostos(await res.json());
       }
     } catch (e) {

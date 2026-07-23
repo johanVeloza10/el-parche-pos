@@ -9,7 +9,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ pendientes });
+    return NextResponse.json({ pendientes }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error) {
     console.error("Error fetching DIAN alerts:", error);
     return NextResponse.json({ pendientes: 0 }, { status: 500 });

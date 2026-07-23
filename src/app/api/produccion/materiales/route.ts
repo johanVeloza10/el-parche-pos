@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       orderBy: { nombre: "asc" }
     });
 
-    return NextResponse.json(materiales);
+    return NextResponse.json(materiales, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 
   } catch (error) {
     console.error("Error obteniendo materiales:", error);
