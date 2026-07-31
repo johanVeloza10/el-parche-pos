@@ -118,6 +118,20 @@ export default function POSClient() {
   };
 
   const agregarAlCarrito = (prenda: any) => {
+    if (prenda.estado === "RESERVADO") {
+      alert(`📋 Código "${prenda.codigo}" está RESERVADO — aún no tiene producto asignado. Cuando llegue mercancía nueva, se le asignará descripción y precio.`);
+      setQuery("");
+      setResultados([]);
+      inputRef.current?.focus();
+      return;
+    }
+    if (prenda.estado === "DADA_BAJA") {
+      alert(`🚫 La prenda "${prenda.codigo}" fue dada de BAJA y no está disponible para venta.`);
+      setQuery("");
+      setResultados([]);
+      inputRef.current?.focus();
+      return;
+    }
     if (prenda.estado !== "EN_VITRINA") {
       alert(`⚠️ Atención: La prenda "${prenda.descripcion}" (${prenda.codigo}) figura como ${prenda.estado} y no está disponible para venta en vitrina.`);
       setQuery("");
