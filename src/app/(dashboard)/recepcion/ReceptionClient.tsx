@@ -16,6 +16,7 @@ export default function ReceptionClient() {
   const [proveedorId, setProveedorId] = useState("");
   const [categoria, setCategoria] = useState(CATEGORIAS_DEFAULT[0]);
   const [descripcion, setDescripcion] = useState("");
+  const [codigoPropio, setCodigoPropio] = useState("");
   const [talla, setTalla] = useState("UNICA");
   const [color, setColor] = useState("");
   const [precioVenta, setPrecioVenta] = useState("");
@@ -121,6 +122,7 @@ export default function ReceptionClient() {
         comisionPct: origen === "CONSIGNACION" && modoComision === "PORCENTAJE" ? parseFloat(comisionPct) : null,
         valorProveedor: origen === "CONSIGNACION" && modoComision === "VALOR_FIJO" ? parseInt(valorProveedor.replace(/\D/g, '') || "0") : null,
         costoProduccion: origen === "PRODUCCION_PROPIA" ? parseInt(costoProduccion.replace(/\D/g, '') || "0") : null,
+        codigoPropio: codigoPropio.trim() || undefined,
       };
 
       const res = await fetch("/api/prendas", {
@@ -136,6 +138,7 @@ export default function ReceptionClient() {
       
       // Limpiar formulario básico pero mantener configuración
       setDescripcion("");
+      setCodigoPropio("");
       setColor("");
       setPrecioVenta("");
       if (origen === "PRODUCCION_PROPIA") setCostoProduccion("");
@@ -248,6 +251,14 @@ export default function ReceptionClient() {
 
               {/* DETALLES DE LA PRENDA */}
               <div>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Código de Prenda (Opcional)</label>
+                <input 
+                  type="text" maxLength={50}
+                  className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none mb-4"
+                  value={codigoPropio} onChange={e => setCodigoPropio(e.target.value)}
+                  placeholder="Ej: DP1C001 (Dejar en blanco para auto-generar)"
+                />
+
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Descripción corta de la prenda</label>
                 <input 
                   type="text" required maxLength={100}

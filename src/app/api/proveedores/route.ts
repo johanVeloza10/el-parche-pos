@@ -18,9 +18,7 @@ export async function GET(req: NextRequest) {
           where: { deletedAt: null },
           include: {
             itemVenta: {
-              where: {
-                itemLiquidacion: null // Solo ventas no liquidadas aún
-              }
+              include: { itemLiquidacion: true }
             }
           }
         }
@@ -36,7 +34,7 @@ export async function GET(req: NextRequest) {
       for (const prenda of prov.prendas) {
         if (prenda.estado === "EN_VITRINA") {
           prendasEnVitrina++;
-        } else if (prenda.estado === "VENDIDA" && prenda.itemVenta) {
+        } else if (prenda.estado === "VENDIDA" && prenda.itemVenta && !prenda.itemVenta.itemLiquidacion) {
           prendasVendidasSinLiquidar++;
           saldoPorPagar += prenda.itemVenta.paraProveedor;
         }

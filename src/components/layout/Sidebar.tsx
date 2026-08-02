@@ -45,6 +45,7 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
       icon: Package,
       roles: ["ADMIN", "VENDEDORA", "CONTADOR"],
     },
+    { name: "Recepción", href: "/recepcion", icon: Tag, roles: ["ADMIN", "VENDEDORA"] },
     { name: "Etiquetas", href: "/inventario/etiquetas", icon: Tag, roles: ["ADMIN", "VENDEDORA"] },
     { name: "Proveedores", href: "/proveedores", icon: Users, roles: ["ADMIN", "CONTADOR", "VENDEDORA"] },
     { name: "Producción", href: "/produccion", icon: Scissors, roles: ["ADMIN", "CONTADOR"] },

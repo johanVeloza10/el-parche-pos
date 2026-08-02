@@ -81,33 +81,39 @@ export async function POST(req: NextRequest) {
       precioVenta, 
       valorProveedor, 
       comisionPct, 
-      costoProduccion 
+      costoProduccion,
+      codigoPropio
     } = body;
 
-    // Obtener la configuración para el prefijo y consecutivo
-    const config = await db.configuracionNegocio.findUnique({ where: { id: "default" } });
-    const prefijo = config?.prefijoCodigoPrenda || "PAR";
-    
-    // Incrementar consecutivo de forma segura
-    const updatedConfig = await db.configuracionNegocio.update({
-      where: { id: "default" },
-      data: { consecutivoActual: { increment: 1 } }
-    });
+    let codigo = codigoPropio;
+    let codigoBarras = codigoPropio;
 
-    const numFormat = updatedConfig.consecutivoActual.toString().padStart(5, '0');
-    const anio = new Date().getFullYear();
-    const codigo = `${prefijo}-${anio}-${numFormat}`;
-    
-    // Generar un código EAN-13 ficticio pero válido para el código de barras (12 dígitos + checksum)
-    // Empezamos con "20" (uso interno), luego los 5 dígitos del consecutivo rellenados a 10.
-    const eanBase = `20${numFormat.padStart(10, '0')}`;
-    // Simple checksum EAN-13
-    let sum = 0;
-    for (let i = 0; i < 12; i++) {
-      sum += parseInt(eanBase[i]) * (i % 2 === 0 ? 1 : 3);
+    if (!codigo) {
+      // Obtener la configuración para el prefijo y consecutivo
+      const config = await db.configuracionNegocio.findUnique({ where: { id: "default" } });
+      const prefijo = config?.prefijoCodigoPrenda || "PAR";
+      
+      // Incrementar consecutivo de forma segura
+      const updatedConfig = await db.configuracionNegocio.update({
+        where: { id: "default" },
+        data: { consecutivoActual: { increment: 1 } }
+      });
+
+      const numFormat = updatedConfig.consecutivoActual.toString().padStart(5, '0');
+      const anio = new Date().getFullYear();
+      codigo = `${prefijo}-${anio}-${numFormat}`;
+      
+      // Generar un código EAN-13 ficticio pero válido para el código de barras (12 dígitos + checksum)
+      // Empezamos con "20" (uso interno), luego los 5 dígitos del consecutivo rellenados a 10.
+      const eanBase = `20${numFormat.padStart(10, '0')}`;
+      // Simple checksum EAN-13
+      let sum = 0;
+      for (let i = 0; i < 12; i++) {
+        sum += parseInt(eanBase[i]) * (i % 2 === 0 ? 1 : 3);
+      }
+      const checkSum = (10 - (sum % 10)) % 10;
+      codigoBarras = `${eanBase}${checkSum}`;
     }
-    const checkSum = (10 - (sum % 10)) % 10;
-    const codigoBarras = `${eanBase}${checkSum}`;
 
     const nuevaPrenda = await db.prenda.create({
       data: {
