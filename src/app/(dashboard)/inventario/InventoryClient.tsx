@@ -213,6 +213,10 @@ export default function InventoryClient() {
         return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
       case "DEVUELTA_PROVEEDOR":
         return "bg-red-500/10 text-red-400 border-red-500/20";
+      case "RESERVADO":
+        return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+      case "DADA_BAJA":
+        return "bg-red-700/20 text-red-300 border-red-700/30";
       default:
         return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
     }
@@ -445,10 +449,12 @@ export default function InventoryClient() {
                             value={editEstado}
                             onChange={(e) => setEditEstado(e.target.value)}
                           >
-                            <option value="EN_VITRINA">En Vitrina</option>
-                            <option value="APARTADA">Apartada</option>
+                            <option value="EN_VITRINA">En Vitrina (Disponible)</option>
+                            <option value="RESERVADO">Reservado (Código Vacío)</option>
+                            <option value="APARTADA">Apartada (Separado)</option>
                             <option value="VENDIDA">Vendida</option>
                             <option value="DEVUELTA_PROVEEDOR">Devuelta a Proveedor</option>
+                            <option value="DADA_BAJA">Dada de Baja (Dañada)</option>
                           </select>
                         ) : (
                           <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${getEstadoColor(prenda.estado)}`}>

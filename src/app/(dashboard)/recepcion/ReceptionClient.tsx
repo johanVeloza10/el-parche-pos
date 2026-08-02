@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PlusCircle, User, Factory, Tag, Barcode, Printer } from "lucide-react";
+import { PlusCircle, User, Factory, Tag, Barcode, Printer, Plus, X, Building, Phone, Mail } from "lucide-react";
 
 const CATEGORIAS_DEFAULT = ["Chaquetas", "Blusas", "Pantalones", "Accesorios", "Joyas", "Vestidos", "Faldas"];
 
@@ -26,22 +26,69 @@ export default function ReceptionClient() {
   const [modoComision, setModoComision] = useState<"PORCENTAJE" | "VALOR_FIJO">("PORCENTAJE");
   const [costoProduccion, setCostoProduccion] = useState("");
 
+  // Modal Proveedor Rápido
+  const [modalProvRapido, setModalProvRapido] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nuevoDoc, setNuevoDoc] = useState("");
+  const [nuevoTel, setNuevoTel] = useState("");
+  const [nuevoComision, setNuevoComision] = useState("30");
+  const [creandoProveedor, setCreandoProveedor] = useState(false);
+
   useEffect(() => {
     fetchProveedores();
   }, []);
 
-  const fetchProveedores = async () => {
+  const fetchProveedores = async (selectNewId?: string) => {
     try {
       const res = await fetch("/api/proveedores", { cache: "no-store" });
       const data = await res.json();
       setProveedores(data);
-      if (data.length > 0) {
+      if (selectNewId) {
+        seleccionarProveedor(selectNewId, data);
+      } else if (data.length > 0 && !proveedorId) {
         seleccionarProveedor(data[0].id, data);
       }
     } catch (error) {
       console.error(error);
     } finally {
       setCargandoProveedores(false);
+    }
+  };
+
+  const handleCrearProveedorRapido = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevoNombre || !nuevoDoc) return;
+    setCreandoProveedor(true);
+    try {
+      const res = await fetch("/api/proveedores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nuevoNombre,
+          tipoDocumento: "CC",
+          numeroDocumento: nuevoDoc,
+          telefono: nuevoTel || "PENDIENTE",
+          comisionDefaultPct: parseFloat(nuevoComision || "30"),
+          modoComisionDefault: "PORCENTAJE",
+          plazoMaxVitrinaDias: 90
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setModalProvRapido(false);
+        setNuevoNombre("");
+        setNuevoDoc("");
+        setNuevoTel("");
+        setNuevoComision("30");
+        await fetchProveedores(data.id);
+      } else {
+        const errData = await res.json();
+        alert("Error creando proveedor: " + errData.error);
+      }
+    } catch (error) {
+      console.error("Error creating provider:", error);
+    } finally {
+      setCreandoProveedor(false);
     }
   };
 
@@ -137,7 +184,16 @@ export default function ReceptionClient() {
               {origen === "CONSIGNACION" ? (
                 <div className="grid grid-cols-2 gap-4 bg-[var(--color-surface-elevated)]/30 p-4 rounded-xl border border-[var(--color-surface-elevated)]">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Proveedor</label>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)]">Proveedor</label>
+                      <button
+                        type="button"
+                        onClick={() => setModalProvRapido(true)}
+                        className="text-[var(--color-primary)] hover:text-white transition-colors text-xs flex items-center gap-1 font-semibold"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Nuevo
+                      </button>
+                    </div>
                     <select 
                       className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none"
                       value={proveedorId}
@@ -292,6 +348,76 @@ export default function ReceptionClient() {
         </div>
 
       </div>
+
+      {/* Modal Proveedor Rápido */}
+      {modalProvRapido && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-surface-elevated)] w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[var(--color-surface-elevated)] flex justify-between items-center bg-[var(--color-surface-elevated)]/30">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Building className="w-5 h-5 text-[var(--color-primary)]" /> Registrar Proveedor Rápido
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setModalProvRapido(false)} 
+                className="text-[var(--color-text-secondary)] hover:text-white transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCrearProveedorRapido} className="p-6 flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Nombre / Marca del Diseñador *</label>
+                <input 
+                  type="text" required
+                  value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)}
+                  placeholder="Ej: Ají Picaflor"
+                  className="w-full bg-[var(--color-surface-elevated)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-2.5 text-white focus:border-[var(--color-primary)] focus:outline-none text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Número de Documento / NIT *</label>
+                <input 
+                  type="text" required
+                  value={nuevoDoc} onChange={e => setNuevoDoc(e.target.value)}
+                  placeholder="Ej: 10203040 o 52157597-9"
+                  className="w-full bg-[var(--color-surface-elevated)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-2.5 text-white focus:border-[var(--color-primary)] focus:outline-none text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Teléfono</label>
+                  <input 
+                    type="text"
+                    value={nuevoTel} onChange={e => setNuevoTel(e.target.value)}
+                    placeholder="315..."
+                    className="w-full bg-[var(--color-surface-elevated)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-2.5 text-white focus:border-[var(--color-primary)] focus:outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Comisión Boutique (%)</label>
+                  <input 
+                    type="number" required
+                    value={nuevoComision} onChange={e => setNuevoComision(e.target.value)}
+                    className="w-full bg-[var(--color-surface-elevated)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-2.5 text-white focus:border-[var(--color-primary)] focus:outline-none text-sm"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={creandoProveedor}
+                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-bold py-3 rounded-xl transition-all duration-300 text-sm mt-2 disabled:opacity-50"
+              >
+                {creandoProveedor ? "Registrando..." : "Registrar y Seleccionar"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

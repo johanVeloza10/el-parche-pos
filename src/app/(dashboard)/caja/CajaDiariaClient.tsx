@@ -371,6 +371,22 @@ export default function CajaDiariaClient() {
               </div>
             </div>
 
+            {/* Banner Informativo de Caja para la Dueña */}
+            {caja.abonosApartados > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex gap-3 items-start">
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="font-sans text-xs text-amber-200">
+                  <p className="font-bold mb-1 text-amber-300">🚨 Reporte de Caja (Apartados y Separados):</p>
+                  <p>
+                    Tienes <span className="font-bold text-white font-mono">{formatCOP(caja.abonosApartados)}</span> en caja correspondientes a ABONOS de apartados hoy.
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-400">
+                    * Nota: Este dinero ya está sumado en el <span className="text-white">Efectivo Esperado</span> para que el arqueo físico te cuadre al 100%, pero se contabiliza separado de las ventas de contado ordinarias para no duplicar el valor de la prenda cuando sea liquidada definitivamente.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <p className="text-center text-xs text-[var(--color-text-muted)] font-sans">
               {caja._count?.ventas || 0} venta(s) registrada(s) en esta caja
             </p>
