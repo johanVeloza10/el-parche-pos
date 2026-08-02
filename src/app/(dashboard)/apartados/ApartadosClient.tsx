@@ -11,13 +11,19 @@ interface Prenda {
 
 interface Apartado {
   id: string;
-  fecha: string;
-  clienteNombre: string;
+  fechaCreacion: string;
   clienteId: string;
+  cliente: {
+    id: string;
+    nombre: string;
+    numeroDocumento?: string;
+  };
   prenda: Prenda;
-  total: number;
+  totalPrenda: number;
   abono: number;
-  estado: "VIGENTE" | "COMPLETADO";
+  estado: "VIGENTE" | "COMPLETADO" | "VENCIDO";
+  fechaLimite: string;
+  observaciones?: string;
 }
 
 type ModalAction = "ABONAR" | "LIQUIDAR" | null;
@@ -60,9 +66,9 @@ export default function ApartadosClient() {
     setFilteredApartados(
       apartados.filter(
         (a) =>
-          a.clienteNombre.toLowerCase().includes(term) ||
-          a.clienteId.toLowerCase().includes(term) ||
-          a.prenda.codigo.toLowerCase().includes(term)
+          (a.cliente?.nombre || '').toLowerCase().includes(term) ||
+          (a.clienteId || '').toLowerCase().includes(term) ||
+          (a.prenda?.codigo || '').toLowerCase().includes(term)
       )
     );
   }, [searchTerm, apartados]);
@@ -72,7 +78,7 @@ export default function ApartadosClient() {
     setModalAction(action);
     setMedioPago("EFECTIVO");
     if (action === "LIQUIDAR") {
-      setMontoAbono(apartado.total - apartado.abono);
+      setMontoAbono(apartado.totalPrenda - apartado.abono);
     } else {
       setMontoAbono("");
     }
@@ -162,12 +168,12 @@ export default function ApartadosClient() {
               </thead>
               <tbody className="divide-y divide-[#252540]">
                 {filteredApartados.map((apartado) => {
-                  const saldo = apartado.total - apartado.abono;
+                  const saldo = apartado.totalPrenda - apartado.abono;
                   return (
                     <tr key={apartado.id} className="hover:bg-[#252540]/30 transition-colors">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm text-[#F8FAFC]">
-                          {new Date(apartado.fecha).toLocaleDateString("es-CO")}
+                          {new Date(apartado.fechaCreacion).toLocaleDateString("es-CO")}
                         </div>
                         <div className="mt-1 flex items-center">
                           {apartado.estado === "COMPLETADO" ? (
@@ -182,15 +188,15 @@ export default function ApartadosClient() {
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-[#F8FAFC]">{apartado.clienteNombre}</div>
-                        <div className="text-xs text-[#94A3B8]">ID: {apartado.clienteId}</div>
+                        <div className="text-sm font-medium text-[#F8FAFC]">{apartado.cliente?.nombre || 'Sin nombre'}</div>
+                        <div className="text-xs text-[#94A3B8]">ID: {apartado.cliente?.numeroDocumento || apartado.clienteId}</div>
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-sm font-medium text-[#F8FAFC]">{apartado.prenda.codigo}</div>
                         <div className="text-xs text-[#94A3B8] truncate max-w-[150px]">{apartado.prenda.descripcion}</div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-[#F8FAFC]">
-                        {formatMoney(apartado.total)}
+                        {formatMoney(apartado.totalPrenda)}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right">
                         <div className="text-sm text-[#10B981]">{formatMoney(apartado.abono)}</div>
@@ -255,7 +261,7 @@ export default function ApartadosClient() {
                 <div className="flex justify-between items-center pt-3 border-t border-[#252540]/50">
                   <span className="text-sm text-[#94A3B8]">Saldo Pendiente:</span>
                   <span className="text-lg font-bold text-[#EF4444]">
-                    {formatMoney(selectedApartado.total - selectedApartado.abono)}
+                    {formatMoney(selectedApartado.totalPrenda - selectedApartado.abono)}
                   </span>
                 </div>
               </div>
@@ -273,7 +279,7 @@ export default function ApartadosClient() {
                       type="number"
                       required
                       min="1"
-                      max={selectedApartado.total - selectedApartado.abono}
+                      max={selectedApartado.totalPrenda - selectedApartado.abono}
                       value={montoAbono}
                       onChange={(e) => setMontoAbono(Number(e.target.value))}
                       readOnly={modalAction === "LIQUIDAR"}
