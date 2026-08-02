@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
+
+const NUMERO_DUENA = "3153259229";
 
 // GET — Get current open caja for the logged-in user
 export async function GET() {
@@ -69,6 +72,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Enviar WhatsApp a la dueña
+    const msg = `🟢 *APERTURA DE CAJA*\nFecha: ${new Date().toLocaleString("es-CO")}\nCajero: ${session.user.name || "N/A"}\nFondo Inicial: $${(fondoInicial || 0).toLocaleString("es-CO")}`;
+    await sendWhatsAppMessage(NUMERO_DUENA, msg);
+
     return NextResponse.json({ caja: nuevaCaja }, { status: 201 });
   } catch (error: any) {
     console.error("Error abriendo caja:", error);
@@ -133,6 +140,22 @@ export async function PATCH(req: NextRequest) {
         },
       },
     });
+
+    // Enviar WhatsApp a la dueña
+    const msg = `🔴 *CIERRE DE CAJA*\nFecha: ${new Date().toLocaleString("es-CO")}\nCajero: ${cajaCerrada.usuario?.nombre || "N/A"}\n\n` +
+      `Total Ventas Sistema: $${cajaCerrada.totalVentasSistema.toLocaleString("es-CO")}\n` +
+      `  - Efectivo: $${cajaCerrada.ventasEfectivo.toLocaleString("es-CO")}\n` +
+      `  - Tarjeta: $${cajaCerrada.ventasTarjeta.toLocaleString("es-CO")}\n` +
+      `  - Transferencias: $${cajaCerrada.ventasTransferencia.toLocaleString("es-CO")}\n\n` +
+      `Fondo Inicial: $${cajaCerrada.fondoInicial.toLocaleString("es-CO")}\n` +
+      `Abonos Apartados: $${cajaCerrada.abonosApartados.toLocaleString("es-CO")}\n` +
+      `Gastos Día: $${cajaCerrada.gastosEfectivo.toLocaleString("es-CO")}\n\n` +
+      `Efectivo Esperado: $${efectivoEsperado.toLocaleString("es-CO")}\n` +
+      `Efectivo Contado: $${efectivoContado.toLocaleString("es-CO")}\n` +
+      `Diferencia: $${diferencia.toLocaleString("es-CO")}\n` +
+      (observacion ? `Observación: ${observacion}` : "");
+      
+    await sendWhatsAppMessage(NUMERO_DUENA, msg);
 
     return NextResponse.json({ caja: cajaCerrada }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error: any) {

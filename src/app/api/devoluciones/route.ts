@@ -27,15 +27,29 @@ export async function POST(req: NextRequest) {
       if (!venta) throw new Error("Venta no encontrada");
       if (venta.anulada) throw new Error("La venta ya está anulada");
 
-      const itemVenta = venta.items.find(i => i.prendaId === prendaId);
-      if (!itemVenta) throw new Error("La prenda no pertenece a esta venta");
+      const itemVenta = await tx.itemVenta.findUnique({
+        where: { prendaId: prendaId },
+        include: { itemLiquidacion: true }
+      });
+
+      if (!itemVenta || itemVenta.ventaId !== venta.id) {
+        throw new Error("La prenda no pertenece a esta venta");
+      }
+
+      if (itemVenta.itemLiquidacion) {
+        throw new Error("No se puede devolver: Esta prenda ya fue pagada/liquidada al proveedor.");
+      }
 
       // Verificar que no se haya devuelto ya
       const notaExistente = await tx.notaCredito.findFirst({
         where: { ventaOriginalId: venta.id, valor: itemVenta.precioVenta - itemVenta.descuentoItem }
       });
-      // En una implementación real más robusta, deberíamos relacionar la nota con la prendaId directamente,
-      // pero por simplicidad usaremos el valor y la ventaOriginal.
+
+      // Si no ha sido liquidada, podemos eliminar el registro de ItemVenta
+      // para que no le sume a las comisiones del proveedor y libere la restricción UNIQUE de prendaId
+      await tx.itemVenta.delete({
+        where: { id: itemVenta.id }
+      });
 
       // 2. Revertir la prenda a EN_VITRINA
       await tx.prenda.update({
