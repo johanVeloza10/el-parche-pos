@@ -9,6 +9,14 @@ interface Prenda {
   descripcion: string;
 }
 
+interface AbonoHistorial {
+  id: string;
+  monto: number;
+  medioPago: string;
+  cajeroNombre: string;
+  fecha: string;
+}
+
 interface Apartado {
   id: string;
   fechaCreacion: string;
@@ -24,6 +32,7 @@ interface Apartado {
   estado: "VIGENTE" | "COMPLETADO" | "VENCIDO";
   fechaLimite: string;
   observaciones?: string;
+  historialAbonos?: AbonoHistorial[];
 }
 
 type ModalAction = "ABONAR" | "LIQUIDAR" | null;
@@ -33,6 +42,11 @@ export default function ApartadosClient() {
   const [filteredApartados, setFilteredApartados] = useState<Apartado[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
 
   // Modal state
   const [modalAction, setModalAction] = useState<ModalAction>(null);
@@ -170,7 +184,11 @@ export default function ApartadosClient() {
                 {filteredApartados.map((apartado) => {
                   const saldo = apartado.totalPrenda - apartado.abono;
                   return (
-                    <tr key={apartado.id} className="hover:bg-[#252540]/30 transition-colors">
+                    <React.Fragment key={apartado.id}>
+                      <tr 
+                        className="hover:bg-[#252540]/30 transition-colors cursor-pointer"
+                        onClick={() => toggleExpand(apartado.id)}
+                      >
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm text-[#F8FAFC]">
                           {new Date(apartado.fechaCreacion).toLocaleDateString("es-CO")}
@@ -204,35 +222,75 @@ export default function ApartadosClient() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
                         <div className="flex justify-center items-center gap-2">
-                          <button
-                            onClick={() => window.open(`/api/apartados/${apartado.id}/ticket`, "_blank")}
-                            className="p-2 bg-[#252540] hover:bg-[#D4A017] hover:text-white text-[#D4A017] rounded-lg transition-colors group"
-                            title="Ver Ticket"
-                          >
-                            <Receipt className="w-4 h-4" />
-                          </button>
-                          
-                          {apartado.estado === "VIGENTE" && (
-                            <>
-                              <button
-                                onClick={() => openModal(apartado, "ABONAR")}
-                                className="px-3 py-2 bg-[#252540] hover:bg-[#0891B2] text-[#0891B2] hover:text-white rounded-lg transition-colors text-xs flex items-center h-10"
-                                title="Abonar"
-                              >
-                                <Plus className="w-3 h-3 md:mr-1" /> <span className="hidden md:inline">Abonar</span>
-                              </button>
-                              <button
-                                onClick={() => openModal(apartado, "LIQUIDAR")}
-                                className="px-3 py-2 bg-[#C41E3A] hover:bg-[#E63946] active:bg-[#8B1425] text-white rounded-lg transition-colors text-xs flex items-center shadow-lg shadow-[#C41E3A]/20 h-10"
-                                title="Liquidar"
-                              >
-                                <CheckCircle className="w-3 h-3 md:mr-1" /> <span className="hidden md:inline">Liquidar</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); window.open(`/api/apartados/${apartado.id}/ticket`, "_blank"); }}
+                              className="p-2 bg-[#252540] hover:bg-[#D4A017] hover:text-white text-[#D4A017] rounded-lg transition-colors group"
+                              title="Ver Ticket"
+                            >
+                              <Receipt className="w-4 h-4" />
+                            </button>
+                            
+                            {apartado.estado === "VIGENTE" && (
+                              <>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openModal(apartado, "ABONAR"); }}
+                                  className="px-3 py-2 bg-[#252540] hover:bg-[#0891B2] text-[#0891B2] hover:text-white rounded-lg transition-colors text-xs flex items-center h-10"
+                                  title="Abonar"
+                                >
+                                  <Plus className="w-3 h-3 md:mr-1" /> <span className="hidden md:inline">Abonar</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openModal(apartado, "LIQUIDAR"); }}
+                                  className="px-3 py-2 bg-[#C41E3A] hover:bg-[#E63946] active:bg-[#8B1425] text-white rounded-lg transition-colors text-xs flex items-center shadow-lg shadow-[#C41E3A]/20 h-10"
+                                  title="Liquidar"
+                                >
+                                  <CheckCircle className="w-3 h-3 md:mr-1" /> <span className="hidden md:inline">Liquidar</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {expandedId === apartado.id && (
+                        <tr className="bg-[#0F0F1A]/50">
+                          <td colSpan={6} className="px-6 py-4">
+                            <div className="bg-[#1A1A2E] rounded-xl border border-[#252540] p-4">
+                              <h4 className="text-sm font-semibold text-[#F8FAFC] mb-4">Historial de Abonos</h4>
+                              {apartado.historialAbonos && apartado.historialAbonos.length > 0 ? (
+                                <div className="space-y-3">
+                                  {apartado.historialAbonos.map((abono) => (
+                                    <div key={abono.id} className="flex justify-between items-center bg-[#252540]/30 p-3 rounded-lg border border-[#252540]">
+                                      <div>
+                                        <div className="text-sm font-medium text-[#F8FAFC]">
+                                          {formatMoney(abono.monto)}
+                                        </div>
+                                        <div className="text-xs text-[#94A3B8] flex items-center gap-2 mt-1">
+                                          <span>{new Date(abono.fecha).toLocaleString("es-CO")}</span>
+                                          <span>•</span>
+                                          <span>{abono.cajeroNombre}</span>
+                                          <span>•</span>
+                                          <span className="bg-[#252540] px-1.5 py-0.5 rounded text-[#D4A017]">{abono.medioPago}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  <div className="pt-3 mt-3 border-t border-[#252540] flex justify-between items-center">
+                                    <span className="text-sm text-[#94A3B8]">Total Abonado:</span>
+                                    <span className="text-sm font-bold text-[#10B981]">{formatMoney(apartado.abono)}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-[#94A3B8]">Saldo Restante:</span>
+                                    <span className="text-sm font-bold text-[#EF4444]">{formatMoney(saldo)}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-[#94A3B8] italic">No hay abonos registrados para este apartado.</p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

@@ -32,11 +32,13 @@ export default async function TiquetePosPage({ params }: { params: Promise<{ id:
         
         {/* Encabezado */}
         <div className="text-center mb-4 flex flex-col items-center">
-          {/* Logo placeholder o texto */}
-          <div className="font-bold text-lg mb-1">EL PARCHE BOUTIQUE</div>
-          <div>NIT: 123456789-0</div>
-          <div>Bogotá, Colombia</div>
-          <div>Régimen Simplificado (No responsable de IVA)</div>
+          <div className="font-bold text-lg mb-1">EL PARCHE</div>
+          <div>Ropa y Accesorios</div>
+          <div>NIT: 52157597-9</div>
+          <div>Tel: 3204014010</div>
+          <div>COLOMBIA</div>
+          <div className="font-bold uppercase mt-1">RÉGIMEN SIMPLIFICADO</div>
+          <div className="text-[10px] italic">No somos responsables de IVA</div>
           <div className="mt-2 font-bold uppercase">
             {venta.documentoFiscal?.tipo === "FACTURA_ELECTRONICA" 
               ? `Factura Electrónica` 
@@ -99,8 +101,9 @@ export default async function TiquetePosPage({ params }: { params: Promise<{ id:
 
         {/* Footer */}
         <div className="text-center text-[10px] mt-4 border-t border-dashed border-black pt-4">
-          <p className="font-bold mb-1">¡Gracias por tu compra en El Parche!</p>
-          <p>Para cambios o garantías conserva este recibo.</p>
+          <p className="font-bold mb-1">Gracias por tu compra</p>
+          <p className="italic">El Parche · Diseño Colombiano Hecho con Amor</p>
+          <p className="mt-2">Para cambios o garantías conserva este recibo.</p>
           <p>Plazo máximo de cambio: 30 días.</p>
         </div>
 

@@ -399,6 +399,47 @@ model Apartado {
   fechaLimite   DateTime
   estado        String   @default("VIGENTE") // VIGENTE|COMPLETADO|VENCIDO
   observaciones String?
+
+  historialAbonos AbonoApartado[]
+}
+
+model AbonoApartado {
+  id          String   @id @default(cuid())
+  apartadoId  String
+  apartado    Apartado @relation(fields: [apartadoId], references: [id])
+  
+  monto       Int
+  medioPago   String   // EFECTIVO|TARJETA|TRANSFERENCIA|MIXTO
+  
+  cajeroId    String
+  cajeroNombre String
+  
+  fecha       DateTime @default(now())
+
+  @@index([apartadoId])
+  @@index([fecha])
+}
+
+// -----------------------------------------------------------------------------
+// BONOS Y CAMPAÑAS DE FIDELIZACIÓN
+// -----------------------------------------------------------------------------
+model Bono {
+  id              String   @id @default(cuid())
+  codigo          String   @unique // Ej: BONOMADRES2026
+  nombre          String   // Nombre de la campaña
+  tipo            String   // PORCENTAJE | VALOR_FIJO
+  valor           Float    // 10 (%) o 20000 (COP)
+  
+  fechaInicio     DateTime @default(now())
+  fechaFin        DateTime
+  
+  usoMaximo       Int      @default(1)  // Cuántas veces se puede usar este código
+  usosActuales    Int      @default(0)
+  
+  activo          Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model NotaCredito {

@@ -12,7 +12,7 @@ export default function POSClient() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [procesando, setProcesando] = useState(false);
   
-  const [medioPago, setMedioPago] = useState<"EFECTIVO" | "TARJETA" | "TRANSFERENCIA" | "MIXTO">("EFECTIVO");
+  const [medioPago, setMedioPago] = useState<"EFECTIVO" | "TARJETA" | "TRANSFERENCIA" | "MIXTO" | "CREDITO">("EFECTIVO");
   const [efectivoRecibido, setEfectivoRecibido] = useState("");
   
   // Pago mixto
@@ -816,7 +816,7 @@ export default function POSClient() {
                 <p className="text-center text-4xl font-heading font-bold text-[var(--color-primary)]">${total.toLocaleString('es-CO')}</p>
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 <button 
                   onClick={() => setMedioPago("EFECTIVO")}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${medioPago === 'EFECTIVO' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20'}`}
@@ -844,6 +844,13 @@ export default function POSClient() {
                 >
                   <Layers className="w-6 h-6" />
                   <span className="text-[10px] sm:text-xs font-bold uppercase">Mixto</span>
+                </button>
+                <button 
+                  onClick={() => setMedioPago("CREDITO")}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${medioPago === 'CREDITO' ? 'border-red-500 bg-red-500/10 text-red-400' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20'}`}
+                >
+                  <AlertTriangle className="w-6 h-6" />
+                  <span className="text-[10px] sm:text-xs font-bold uppercase">Crédito</span>
                 </button>
               </div>
 
@@ -882,6 +889,17 @@ export default function POSClient() {
                   <div className="flex items-center gap-3">
                     <Smartphone className="w-5 h-5 text-zinc-500" />
                     <input type="number" placeholder="Nequi/Tx" value={montoTransferencia} onChange={e => setMontoTransferencia(e.target.value)} className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[var(--color-primary)] text-right" />
+                  </div>
+                </div>
+              )}
+
+              {medioPago === "CREDITO" && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex gap-3 items-start">
+                  <AlertTriangle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-bold text-red-400 mb-1">⚠️ Venta a Crédito / Fiado</p>
+                    <p className="text-red-200 text-xs">La prenda saldrá del inventario pero <span className="font-bold text-white">NO entrará dinero a la caja</span>. Se generará un soporte de cuenta por cobrar para la contadora.</p>
+                    <p className="text-red-200/60 text-[11px] mt-1">Asegúrate de tener un cliente seleccionado para el seguimiento.</p>
                   </div>
                 </div>
               )}

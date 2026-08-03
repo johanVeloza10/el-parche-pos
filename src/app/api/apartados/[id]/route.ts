@@ -16,6 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       include: {
         prenda: true,
         cliente: true,
+        historialAbonos: { orderBy: { fecha: 'desc' } }
       },
     });
 
@@ -155,31 +156,44 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             abono: { increment: nuevoAbono }
           }
         });
+
+        await tx.abonoApartado.create({
+          data: {
+            apartadoId: id,
+            monto: nuevoAbono,
+            medioPago: medioPago || "EFECTIVO",
+            cajeroId: session.user.id,
+            cajeroNombre: session.user.name || "Cajero",
+          }
+        });
       }
 
       const updateData: any = {};
-      if (medioPago === "EFECTIVO") {
-        updateData.ventasEfectivo = { increment: nuevoAbono };
-      } else if (medioPago === "TARJETA") {
-        updateData.ventasTarjeta = { increment: nuevoAbono };
-      } else if (medioPago === "TRANSFERENCIA") {
-        updateData.ventasTransferencia = { increment: nuevoAbono };
-      } else if (medioPago === "MIXTO" && desglosePago) {
-        const desglose = typeof desglosePago === "string"
-          ? JSON.parse(desglosePago)
-          : desglosePago;
-        if (desglose.efectivo) {
-          updateData.ventasEfectivo = { increment: desglose.efectivo };
+      if (liquidar) {
+        if (medioPago === "EFECTIVO") {
+          updateData.ventasEfectivo = { increment: nuevoAbono };
+        } else if (medioPago === "TARJETA") {
+          updateData.ventasTarjeta = { increment: nuevoAbono };
+        } else if (medioPago === "TRANSFERENCIA") {
+          updateData.ventasTransferencia = { increment: nuevoAbono };
+        } else if (medioPago === "MIXTO" && desglosePago) {
+          const desglose = typeof desglosePago === "string"
+            ? JSON.parse(desglosePago)
+            : desglosePago;
+          if (desglose.efectivo) {
+            updateData.ventasEfectivo = { increment: desglose.efectivo };
+          }
+          if (desglose.tarjeta) {
+            updateData.ventasTarjeta = { increment: desglose.tarjeta };
+          }
+          if (desglose.transferencia) {
+            updateData.ventasTransferencia = { increment: desglose.transferencia };
+          }
         }
-        if (desglose.tarjeta) {
-          updateData.ventasTarjeta = { increment: desglose.tarjeta };
-        }
-        if (desglose.transferencia) {
-          updateData.ventasTransferencia = { increment: desglose.transferencia };
-        }
+        updateData.totalVentasSistema = { increment: nuevoAbono };
+      } else {
+        updateData.abonosApartados = { increment: nuevoAbono };
       }
-
-      updateData.totalVentasSistema = { increment: nuevoAbono };
 
       await tx.cierreCaja.update({
         where: { id: cajaAbierta.id },

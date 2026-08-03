@@ -139,7 +139,11 @@ export async function POST(req: NextRequest) {
       if (cajaAbierta) {
         const updateData: any = {};
 
-        if (medioPago === "EFECTIVO") {
+        if (medioPago === "CREDITO") {
+          // Venta a crédito / fiado: la prenda sale del inventario
+          // pero NO se suma dinero físico a la caja
+          // Solo se registra en totalVentasSistema para reportes
+        } else if (medioPago === "EFECTIVO") {
           updateData.ventasEfectivo = { increment: totalVenta };
         } else if (medioPago === "TARJETA") {
           updateData.ventasTarjeta = { increment: totalVenta };

@@ -13,7 +13,8 @@ import {
   Tag,
   X,
   Layers,
-  RotateCcw
+  RotateCcw,
+  Gift
 } from "lucide-react"
 
 interface SidebarProps {
@@ -51,6 +52,7 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
     { name: "Producción", href: "/produccion", icon: Scissors, roles: ["ADMIN", "CONTADOR"] },
     { name: "Cuentas", href: "/cuentas", icon: Wallet, roles: ["ADMIN", "CONTADOR"] },
     { name: "Caja Diaria", href: "/caja", icon: Store, roles: ["ADMIN", "VENDEDORA"] },
+    { name: "Campañas / Bonos", href: "/campanas", icon: Gift, roles: ["ADMIN"] },
     { name: "Reportes", href: "/reportes", icon: BarChart3, roles: ["ADMIN", "CONTADOR"] },
     { name: "Configuración", href: "/configuracion", icon: Settings, roles: ["ADMIN"] },
   ]

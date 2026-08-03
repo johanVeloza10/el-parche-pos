@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       include: {
         prenda: true,
         cliente: true,
+        historialAbonos: { orderBy: { fecha: 'desc' } }
       },
       orderBy: {
         fechaCreacion: "desc",
