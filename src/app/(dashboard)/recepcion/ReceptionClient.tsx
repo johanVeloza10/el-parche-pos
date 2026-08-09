@@ -10,6 +10,7 @@ export default function ReceptionClient() {
   const [cargandoProveedores, setCargandoProveedores] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [ultimaPrenda, setUltimaPrenda] = useState<any>(null);
+  const [ultimasPrendas, setUltimasPrendas] = useState<any[]>([]);
 
   // Form State
   const [origen, setOrigen] = useState<"CONSIGNACION" | "PRODUCCION_PROPIA">("CONSIGNACION");
@@ -136,7 +137,8 @@ export default function ReceptionClient() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      setUltimaPrenda(data);
+      setUltimasPrendas(data);
+      setUltimaPrenda(data[0]);
       
       // Limpiar formulario básico pero mantener configuración
       setDescripcion("");
@@ -356,28 +358,47 @@ export default function ReceptionClient() {
 
         {/* FEEDBACK & ETIQUETAS */}
         <div className="flex flex-col gap-6">
-          {ultimaPrenda ? (
+          {ultimasPrendas.length > 0 ? (
             <div className="bg-[var(--color-surface)] border border-green-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
               <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-                <Tag className="w-5 h-5 text-green-400" /> ¡Guardada!
+                <Tag className="w-5 h-5 text-green-400" /> ¡Guardada(s)!
               </h3>
               
               <div className="bg-[var(--color-surface-elevated)] p-4 rounded-xl mb-6">
-                <p className="text-[var(--color-text-secondary)] text-xs mb-1">CÓDIGO ÚNICO</p>
-                <p className="font-mono text-2xl text-white tracking-widest">{ultimaPrenda.codigo}</p>
-                <p className="mt-2 text-sm text-[var(--color-text-secondary)] line-clamp-2">{ultimaPrenda.descripcion}</p>
+                <p className="text-[var(--color-text-secondary)] text-xs mb-1 font-bold">
+                  {ultimasPrendas.length === 1 ? "CÓDIGO ÚNICO" : `${ultimasPrendas.length} CÓDIGOS GENERADOS`}
+                </p>
+                {ultimasPrendas.length === 1 ? (
+                  <p className="font-mono text-2xl text-white tracking-widest">{ultimasPrendas[0].codigo}</p>
+                ) : (
+                  <div className="max-h-28 overflow-y-auto divide-y divide-zinc-800 custom-scrollbar pr-2 mt-1">
+                    {ultimasPrendas.map((p, idx) => (
+                      <p key={idx} className="font-mono text-sm text-white py-1">{p.codigo}</p>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-2 text-sm text-[var(--color-text-secondary)] line-clamp-2">{ultimasPrendas[0].descripcion}</p>
               </div>
 
-              <button 
-                onClick={() => window.open(`/etiqueta/${ultimaPrenda.id}`, '_blank')}
-                className="w-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
-              >
-                <Printer className="w-5 h-5" /> Imprimir Etiqueta
-              </button>
+              {ultimasPrendas.length === 1 ? (
+                <button 
+                  onClick={() => window.open(`/etiqueta/${ultimasPrendas[0].id}`, '_blank')}
+                  className="w-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                >
+                  <Printer className="w-5 h-5" /> Imprimir Etiqueta
+                </button>
+              ) : (
+                <a 
+                  href="/inventario/etiquetas"
+                  className="w-full border-2 border-[var(--color-secondary)] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)] hover:text-black font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2 text-center"
+                >
+                  <Printer className="w-5 h-5" /> Imprimir Etiquetas en Lote
+                </a>
+              )}
             </div>
           ) : (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-3xl p-6 shadow-xl flex flex-col items-center justify-center text-center opacity-50 h-full min-h-[300px]">
+            <div className="bg-[var(--color-surface)] border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col items-center justify-center text-center opacity-50 h-full min-h-[300px]">
               <Barcode className="w-16 h-16 text-[var(--color-text-muted)] mb-4" />
               <p className="text-[var(--color-text-secondary)]">Registra una prenda para generar su código de barras</p>
             </div>

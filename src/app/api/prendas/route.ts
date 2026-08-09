@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
       prendasCreadas.push(nuevaPrenda);
     }
 
-    return NextResponse.json(prendasCreadas[0], { status: 201 });
+    return NextResponse.json(prendasCreadas, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creando prenda:", error);
