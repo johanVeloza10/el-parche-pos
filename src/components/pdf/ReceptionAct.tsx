@@ -95,7 +95,7 @@ interface ReceptionActProps {
 
 export const ReceptionAct: React.FC<ReceptionActProps> = ({ proveedor, prendas, config }) => {
   const formatCOP = (num: number) => `$${Math.round(num).toLocaleString('es-CO')}`;
-  const fHoy = new Date().toLocaleDateString('es-CO');
+  const fHoy = new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
 
   const calcularValorProveedor = (prenda: any) => {
     if (prenda.valorProveedor) return prenda.valorProveedor;

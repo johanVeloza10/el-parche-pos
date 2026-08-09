@@ -92,8 +92,8 @@ interface LiquidationProps {
 
 export const LiquidationReceipt: React.FC<LiquidationProps> = ({ liq, config }) => {
   const formatCOP = (num: number) => `$${Math.round(num).toLocaleString('es-CO')}`;
-  const fInicio = new Date(liq.periodoInicio).toLocaleDateString('es-CO');
-  const fFin = new Date(liq.periodoFin).toLocaleDateString('es-CO');
+  const fInicio = new Date(liq.periodoInicio).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
+  const fFin = new Date(liq.periodoFin).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
 
   return (
     <Document>
@@ -141,7 +141,7 @@ export const LiquidationReceipt: React.FC<LiquidationProps> = ({ liq, config }) 
         <View style={styles.row}>
           <Text>Estado y Soporte:</Text>
           <Text style={styles.bold}>
-            {liq.estado} {liq.fechaPago ? `(Pagado el ${new Date(liq.fechaPago).toLocaleDateString('es-CO')})` : ""}
+            {liq.estado} {liq.fechaPago ? `(Pagado el ${new Date(liq.fechaPago).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })})` : ""}
           </Text>
         </View>
 

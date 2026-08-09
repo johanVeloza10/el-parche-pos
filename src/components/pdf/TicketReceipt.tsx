@@ -104,7 +104,7 @@ export const TicketReceipt: React.FC<TicketProps> = ({ venta, config }) => {
         </View>
         <View style={styles.row}>
           <Text>Fecha:</Text>
-          <Text>{new Date(venta.fechaHora).toLocaleString('es-CO')}</Text>
+          <Text>{new Date(venta.fechaHora).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</Text>
         </View>
         <View style={styles.row}>
           <Text>Cajero:</Text>

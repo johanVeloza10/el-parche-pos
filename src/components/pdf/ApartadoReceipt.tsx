@@ -108,11 +108,11 @@ export const ApartadoReceipt: React.FC<ApartadoProps> = ({ apartado, config }) =
         </View>
         <View style={styles.row}>
           <Text>Fecha:</Text>
-          <Text>{new Date(apartado.fechaCreacion).toLocaleString('es-CO')}</Text>
+          <Text>{new Date(apartado.fechaCreacion).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</Text>
         </View>
         <View style={styles.row}>
           <Text>Fecha Límite:</Text>
-          <Text style={styles.bold}>{new Date(apartado.fechaLimite).toLocaleDateString('es-CO')}</Text>
+          <Text style={styles.bold}>{new Date(apartado.fechaLimite).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}</Text>
         </View>
         <View style={styles.row}>
           <Text>Cliente:</Text>
