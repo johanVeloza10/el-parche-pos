@@ -69,6 +69,11 @@ export default function CajaDiariaClient() {
   }, []);
 
   const abrirCaja = async () => {
+    if (fondoInicial === "" || isNaN(parseInt(fondoInicial)) || parseInt(fondoInicial) < 0) {
+      setError("❌ OBLIGATORIO: Por favor ingresa con qué base en efectivo estás abriendo la caja hoy.");
+      return;
+    }
+    
     setAbriendo(true);
     setError("");
     try {
@@ -173,6 +178,11 @@ export default function CajaDiariaClient() {
         <p className="text-[var(--color-text-secondary)] text-sm mt-1 font-sans">
           Abre la caja al iniciar el día, y ciérrala al finalizar con el arqueo de efectivo.
         </p>
+        <div className="mt-4">
+          <a href="/caja/historial" className="inline-flex items-center gap-2 text-sm text-[var(--color-primary)] hover:text-white transition-colors bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 px-4 py-2 rounded-lg font-medium border border-[var(--color-primary)]/20">
+            <Banknote className="w-4 h-4" /> Ver Historial de Arqueos
+          </a>
+        </div>
       </div>
 
       {error && (
@@ -280,6 +290,15 @@ export default function CajaDiariaClient() {
                 >
                   WhatsApp
                 </a>
+              </div>
+              
+              <div className="mt-4 border-t border-[var(--color-surface-elevated)] pt-4">
+                <button
+                  onClick={() => window.open(`/api/caja/${caja.id}/pdf`, '_blank')}
+                  className="w-full bg-[var(--color-surface-elevated)] hover:bg-[var(--color-surface-elevated)]/80 text-[var(--color-primary)] font-bold py-2 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 border border-[var(--color-primary)]/30"
+                >
+                  <Banknote className="w-4 h-4" /> Volver a Imprimir Arqueo
+                </button>
               </div>
             </div>
           )}
