@@ -41,6 +41,12 @@ export default function Sidebar({ userRol, isOpen = false, onClose }: SidebarPro
       roles: ["ADMIN", "VENDEDORA"],
     },
     {
+      name: "Cartera",
+      href: "/cartera",
+      icon: Wallet,
+      roles: ["ADMIN", "VENDEDORA"],
+    },
+    {
       name: "Inventario",
       href: "/inventario",
       icon: Package,

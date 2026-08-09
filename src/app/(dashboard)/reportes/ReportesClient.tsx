@@ -5,17 +5,37 @@ import { BarChart3, Download, RefreshCw, Calendar, TrendingUp, AlertOctagon, Sca
 
 export default function ReportesClient() {
   const [mesConsultado, setMesConsultado] = useState(new Date().toISOString().substring(0, 7)); // Ej: "2026-05"
+  const [proveedorId, setProveedorId] = useState("");
+  const [proveedores, setProveedores] = useState<any[]>([]);
   const [data, setData] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    fetchProveedores();
+  }, []);
+
+  useEffect(() => {
     fetchIndicadores();
-  }, [mesConsultado]);
+  }, [mesConsultado, proveedorId]);
+
+  const fetchProveedores = async () => {
+    try {
+      const res = await fetch("/api/proveedores", { cache: "no-store" });
+      if (res.ok) {
+        setProveedores(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchIndicadores = async () => {
     setCargando(true);
     try {
-      const res = await fetch(`/api/reportes?mes=${mesConsultado}`, { cache: "no-store" });
+      const url = proveedorId 
+        ? `/api/reportes?mes=${mesConsultado}&proveedorId=${proveedorId}`
+        : `/api/reportes?mes=${mesConsultado}`;
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) {
         setData(await res.json());
       }
@@ -54,15 +74,29 @@ export default function ReportesClient() {
           <p className="text-[var(--color-text-secondary)]">Inteligencia comercial, rotación y exportación de datos contables.</p>
         </div>
 
-        {/* SELECTOR DE MES */}
-        <div className="flex items-center gap-3 bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] p-2.5 rounded-2xl">
-          <Calendar className="w-5 h-5 text-[var(--color-primary)]" />
-          <input 
-            type="month"
-            className="bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
-            value={mesConsultado}
-            onChange={e => setMesConsultado(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-2 bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] p-2.5 rounded-2xl">
+            <select
+              value={proveedorId}
+              onChange={e => setProveedorId(e.target.value)}
+              className="bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
+            >
+              <option value="">Todos los Proveedores</option>
+              {proveedores.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+          </div>
+          {/* SELECTOR DE MES */}
+          <div className="flex items-center gap-3 bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] p-2.5 rounded-2xl">
+            <Calendar className="w-5 h-5 text-[var(--color-primary)]" />
+            <input 
+              type="month"
+              className="bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
+              value={mesConsultado}
+              onChange={e => setMesConsultado(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

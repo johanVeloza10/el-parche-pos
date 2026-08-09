@@ -19,6 +19,9 @@ export default function POSClient() {
   const [montoEfectivo, setMontoEfectivo] = useState("");
   const [montoTarjeta, setMontoTarjeta] = useState("");
   const [montoTransferencia, setMontoTransferencia] = useState("");
+  
+  // Crédito
+  const [abonoCredito, setAbonoCredito] = useState("");
 
   // Clientes
   const [clienteQuery, setClienteQuery] = useState("");
@@ -215,6 +218,20 @@ export default function POSClient() {
       desglosePago = { efectivo: e, tarjeta: t, transferencia: tr };
     }
 
+    if (medioPago === "CREDITO" && !clienteSeleccionado) {
+      alert("Debes seleccionar o crear un cliente para hacer una venta a crédito.");
+      return;
+    }
+    
+    let abonoCreditoNum = 0;
+    if (medioPago === "CREDITO") {
+      abonoCreditoNum = parseInt(abonoCredito || "0");
+      if (abonoCreditoNum < 0 || abonoCreditoNum > total) {
+        alert("El abono debe ser mayor o igual a 0 y menor o igual al total.");
+        return;
+      }
+    }
+
     setProcesando(true);
     try {
       const res = await fetch("/api/ventas", {
@@ -225,6 +242,7 @@ export default function POSClient() {
           medioPago,
           desglosePago,
           clienteId: clienteSeleccionado?.id || null,
+          abonoCredito: abonoCreditoNum
         }),
       });
 
@@ -245,6 +263,7 @@ export default function POSClient() {
       setMontoEfectivo("");
       setMontoTarjeta("");
       setMontoTransferencia("");
+      setAbonoCredito("");
       setClienteSeleccionado(null);
     } catch (error: any) {
       alert("Error: " + error.message);
@@ -894,12 +913,25 @@ export default function POSClient() {
               )}
 
               {medioPago === "CREDITO" && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex gap-3 items-start">
-                  <AlertTriangle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-bold text-red-400 mb-1">⚠️ Venta a Crédito / Fiado</p>
-                    <p className="text-red-200 text-xs">La prenda saldrá del inventario pero <span className="font-bold text-white">NO entrará dinero a la caja</span>. Se generará un soporte de cuenta por cobrar para la contadora.</p>
-                    <p className="text-red-200/60 text-[11px] mt-1">Asegúrate de tener un cliente seleccionado para el seguimiento.</p>
+                <div className="flex flex-col gap-4">
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex gap-3 items-start">
+                    <AlertTriangle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-bold text-red-400 mb-1">⚠️ Venta a Crédito / Fiado</p>
+                      <p className="text-red-200 text-xs">La prenda saldrá del inventario. Se generará un soporte de cuenta por cobrar para la contadora.</p>
+                      <p className="text-red-200/60 text-[11px] mt-1">Asegúrate de tener un cliente seleccionado para el seguimiento.</p>
+                    </div>
+                  </div>
+                  <div className="bg-black/30 p-3 sm:p-5 rounded-2xl border border-[var(--color-surface-elevated)]">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Abono Inicial (Efectivo)</label>
+                    <input
+                      type="number"
+                      value={abonoCredito}
+                      onChange={(e) => setAbonoCredito(e.target.value)}
+                      placeholder="0"
+                      className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl py-3 px-4 text-white text-xl focus:outline-none focus:border-[var(--color-primary)] text-right"
+                    />
+                    <p className="text-xs text-zinc-500 mt-2 text-right">Saldo pendiente: ${(total - (parseInt(abonoCredito || "0") || 0)).toLocaleString('es-CO')}</p>
                   </div>
                 </div>
               )}
@@ -917,7 +949,8 @@ export default function POSClient() {
                 disabled={
                   procesando || 
                   (medioPago === 'EFECTIVO' && vueltas < 0 && efectivoRecibido !== '') ||
-                  (medioPago === 'MIXTO' && restanteMixto !== 0)
+                  (medioPago === 'MIXTO' && restanteMixto !== 0) ||
+                  (medioPago === 'CREDITO' && (!clienteSeleccionado || (parseInt(abonoCredito || "0") || 0) < 0 || (parseInt(abonoCredito || "0") || 0) > total))
                 }
                 onClick={procesarVenta}
                 className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-black font-extrabold py-4 rounded-xl transition-all duration-300 text-lg flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(252,209,22,0.15)]"

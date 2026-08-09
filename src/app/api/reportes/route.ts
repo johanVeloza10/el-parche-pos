@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const mes = searchParams.get("mes") || new Date().toISOString().substring(0, 7); // Por defecto el mes actual, ej: "2026-06"
+    const proveedorId = searchParams.get("proveedorId") || undefined;
 
     const ahora = new Date();
 
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest) {
         fechaIngreso: {
           lte: limiteEnvejecida
         },
-        deletedAt: null
+        deletedAt: null,
+        ...(proveedorId ? { proveedorId } : {})
       },
       include: {
         proveedor: {
@@ -52,7 +54,8 @@ export async function GET(req: NextRequest) {
     const prendasVendidas = await db.prenda.findMany({
       where: {
         estado: "VENDIDA",
-        fechaVenta: { not: null }
+        fechaVenta: { not: null },
+        ...(proveedorId ? { proveedorId } : {})
       },
       select: {
         categoria: true,
@@ -82,7 +85,10 @@ export async function GET(req: NextRequest) {
 
     // 3. RANKING DE PROVEEDORES
     const proveedores = await db.proveedor.findMany({
-      where: { activo: true },
+      where: { 
+        activo: true,
+        ...(proveedorId ? { id: proveedorId } : {}) 
+      },
       include: {
         prendas: {
           include: {
@@ -117,8 +123,12 @@ export async function GET(req: NextRequest) {
     }).sort((a, b) => b.ventasTotales - a.ventasTotales);
 
     // 4. COMISIÓN PROMEDIO REAL Y PUNTO DE EQUILIBRIO
-    // Calculamos la comisión real sobre todas las ventas del sistema
-    const itemsVenta = await db.itemVenta.findMany();
+    // Calculamos la comisión real sobre todas las ventas del sistema (o del proveedor filtrado)
+    const itemsVenta = await db.itemVenta.findMany({
+      where: {
+        ...(proveedorId ? { prenda: { proveedorId } } : {})
+      }
+    });
     let sumaVentas = 0;
     let sumaComisiones = 0;
 

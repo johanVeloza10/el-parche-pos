@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, medioPago, desglosePago, clienteId } = body;
+    const { items, medioPago, desglosePago, clienteId, abonoCredito } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "No hay prendas en la venta" }, { status: 400 });
@@ -120,6 +120,40 @@ export async function POST(req: NextRequest) {
         }
       });
 
+      // 4.5. Si es crédito, crear CuentaPorCobrar
+      if (medioPago === "CREDITO") {
+        if (!clienteId) {
+          throw new Error("El cliente es obligatorio para ventas a crédito");
+        }
+        
+        const abonoInicialNum = abonoCredito || 0;
+        const saldoPendiente = totalVenta - abonoInicialNum;
+        
+        const cuenta = await tx.cuentaPorCobrar.create({
+          data: {
+            ventaId: venta.id,
+            clienteId: clienteId,
+            saldoInicial: totalVenta,
+            abonos: abonoInicialNum,
+            saldoPendiente: saldoPendiente,
+            estado: saldoPendiente <= 0 ? "PAGADA" : "PENDIENTE"
+          }
+        });
+
+        if (abonoInicialNum > 0) {
+          await tx.abonoCuentaCobrar.create({
+            data: {
+              cuentaCobrarId: cuenta.id,
+              monto: abonoInicialNum,
+              medioPago: "EFECTIVO", // By default abono inicial is cash in this simple flow
+              cierreCajaId: cajaAbierta?.id || null,
+              cajeroId: session.user.id,
+              cajeroNombre: session.user.name || "Cajero"
+            }
+          });
+        }
+      }
+
       // 5. Registrar en AuditLog
       for (const p of prendasEnBd) {
         await tx.auditLog.create({
@@ -141,8 +175,12 @@ export async function POST(req: NextRequest) {
 
         if (medioPago === "CREDITO") {
           // Venta a crédito / fiado: la prenda sale del inventario
-          // pero NO se suma dinero físico a la caja
-          // Solo se registra en totalVentasSistema para reportes
+          // Solo entra a caja si hay un abono inicial
+          if (abonoCredito && abonoCredito > 0) {
+            updateData.ventasEfectivo = { increment: abonoCredito };
+            // Note: abonos a crédito podrían tener su propio contador, pero por ahora lo sumamos al efectivo
+          }
+          // El total de la venta se suma a reportes (totalVentasSistema)
         } else if (medioPago === "EFECTIVO") {
           updateData.ventasEfectivo = { increment: totalVenta };
         } else if (medioPago === "TARJETA") {

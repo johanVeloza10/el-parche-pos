@@ -179,8 +179,8 @@ export default function ProveedoresClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           proveedorId: provSeleccionado.id,
-          periodoInicio: new Date(fechaInicio).toISOString(),
-          periodoFin: new Date(fechaFin).toISOString(),
+          fechaInicio: new Date(fechaInicio).toISOString(),
+          fechaFin: new Date(fechaFin).toISOString(),
         })
       });
 
@@ -321,9 +321,14 @@ export default function ProveedoresClient() {
                     </span>
                   </div>
                 </div>
-                <button onClick={() => setProvSeleccionado(null)} className="text-[var(--color-text-muted)] hover:text-white p-1">
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <a href={`/proveedores/${provSeleccionado.id}`} className="text-xs bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg transition-colors font-bold">
+                    Ver Perfil Completo
+                  </a>
+                  <button onClick={() => setProvSeleccionado(null)} className="text-[var(--color-text-muted)] hover:text-white p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               {/* TRIBUTARIO DIAN */}

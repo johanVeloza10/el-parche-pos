@@ -20,6 +20,7 @@ export default function ReceptionClient() {
   const [talla, setTalla] = useState("UNICA");
   const [color, setColor] = useState("");
   const [precioVenta, setPrecioVenta] = useState("");
+  const [cantidad, setCantidad] = useState("1");
   
   // Dynamic fields
   const [comisionPct, setComisionPct] = useState("");
@@ -123,6 +124,7 @@ export default function ReceptionClient() {
         valorProveedor: origen === "CONSIGNACION" && modoComision === "VALOR_FIJO" ? parseInt(valorProveedor.replace(/\D/g, '') || "0") : null,
         costoProduccion: origen === "PRODUCCION_PROPIA" ? parseInt(costoProduccion.replace(/\D/g, '') || "0") : null,
         codigoPropio: codigoPropio.trim() || undefined,
+        cantidad: parseInt(cantidad || "1"),
       };
 
       const res = await fetch("/api/prendas", {
@@ -141,6 +143,7 @@ export default function ReceptionClient() {
       setCodigoPropio("");
       setColor("");
       setPrecioVenta("");
+      setCantidad("1");
       if (origen === "PRODUCCION_PROPIA") setCostoProduccion("");
       
     } catch (error: any) {
@@ -287,6 +290,29 @@ export default function ReceptionClient() {
                     placeholder="Ej: Azul Oscuro"
                   />
                 </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Precio de Venta ($ COP) *</label>
+                      <input 
+                        type="text" required
+                        className="w-full bg-black border border-[var(--color-surface-elevated)] rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[var(--color-primary)] font-mono text-lg"
+                        value={precioVenta}
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          setPrecioVenta(val ? parseInt(val).toLocaleString("es-CO") : "");
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Cantidad *</label>
+                      <input 
+                        type="number" min="1" max="100" required
+                        className="w-full bg-black border border-[var(--color-surface-elevated)] rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[var(--color-primary)] font-mono text-lg"
+                        value={cantidad}
+                        onChange={e => setCantidad(e.target.value)}
+                      />
+                    </div>
+                  </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -146,6 +146,7 @@ model Cliente {
   
   ventas          Venta[]
   apartados       Apartado[]
+  cuentasPorCobrar CuentaPorCobrar[]
   notasCredito    NotaCredito[]
   
   createdAt       DateTime @default(now())
@@ -181,6 +182,7 @@ model Venta {
   
   items                  ItemVenta[]
   notasCredito           NotaCredito[]
+  cuentaCobrar           CuentaPorCobrar?
   documentoFiscal        DocumentoFiscal?
   
   createdAt              DateTime @default(now())
@@ -372,6 +374,7 @@ model CierreCaja {
   fondoInicial        Int      @default(0)
   gastosEfectivo      Int      @default(0)
   abonosApartados     Int      @default(0)
+    abonosCuentaCobrar AbonoCuentaCobrar[]
   totalVentasSistema  Int      @default(0)
   
   efectivoContado     Int?
@@ -488,5 +491,43 @@ model HistoricoLibro {
   gastos        Int
   saldoDia      Int
   createdAt     DateTime @default(now())
+}
+
+model CuentaPorCobrar {
+  id              String   @id @default(cuid())
+  ventaId         String   @unique
+  venta           Venta    @relation(fields: [ventaId], references: [id])
+  
+  clienteId       String
+  cliente         Cliente  @relation(fields: [clienteId], references: [id])
+  
+  saldoInicial    Int
+  abonos          Int      @default(0)
+  saldoPendiente  Int
+  
+  estado          String   @default("PENDIENTE") // PENDIENTE|PAGADA
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  historialAbonos AbonoCuentaCobrar[]
+}
+
+model AbonoCuentaCobrar {
+  id              String   @id @default(cuid())
+  cuentaCobrarId  String
+  cuentaCobrar    CuentaPorCobrar @relation(fields: [cuentaCobrarId], references: [id])
+  
+  monto           Int
+  medioPago       String   // EFECTIVO|TARJETA|TRANSFERENCIA|MIXTO
+  desglosePago    String?  // JSON
+  
+  cierreCajaId    String?
+  cierreCaja      CierreCaja? @relation(fields: [cierreCajaId], references: [id])
+  
+  cajeroId        String
+  cajeroNombre    String
+  
+  fecha           DateTime @default(now())
 }
 
