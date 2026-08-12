@@ -226,7 +226,7 @@ export default function InventoryClient() {
     <div className="flex flex-col gap-8 pb-16">
       
       {/* HEADER & TOP CONTROLS */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="font-heading text-4xl font-light italic text-white tracking-wide flex items-center gap-3 select-none">
             Inventario{" "}
@@ -290,7 +290,7 @@ export default function InventoryClient() {
 
       {/* FILTROS DE BÚSQUEDA */}
       <div className="border-stitch-white rounded-3xl p-5 shadow-xl flex flex-col gap-4 bg-[var(--color-surface)]">
-        <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col xl:flex-row gap-4 xl:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
             <input 
