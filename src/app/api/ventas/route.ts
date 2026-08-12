@@ -30,6 +30,18 @@ export async function POST(req: NextRequest) {
         }
       });
 
+      if (cajaAbierta) {
+        // Verificar que la caja no sea de un día anterior
+        const hoy = new Date();
+        // Ajustamos ambas fechas a Bogotá para comparar el día
+        const hoyStr = hoy.toLocaleString("en-US", { timeZone: "America/Bogota", day: "numeric", month: "numeric", year: "numeric" });
+        const cajaStr = new Date(cajaAbierta.createdAt).toLocaleString("en-US", { timeZone: "America/Bogota", day: "numeric", month: "numeric", year: "numeric" });
+        
+        if (hoyStr !== cajaStr) {
+          throw new Error("ALERTA: Tienes una caja abierta de un día anterior. Por favor ve al módulo 'Caja Diaria', haz el cierre de caja (Arqueo) y abre una nueva con la fecha de hoy para poder vender.");
+        }
+      }
+
       // 1. Bloqueamos/Revisamos las prendas
       const prendasEnBd = await tx.prenda.findMany({
         where: { id: { in: prendaIds } },

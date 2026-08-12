@@ -79,7 +79,7 @@ export default function InventoryClient() {
       if (filtroProveedor) url.searchParams.append("proveedorId", filtroProveedor);
       if (query) url.searchParams.append("q", query);
       
-      const res = await fetch(url.toString());
+      const res = await fetch(url.toString(), { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setPrendas(data.prendas);
