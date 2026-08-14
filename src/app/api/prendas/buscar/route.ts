@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
           { descripcion: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
-      take: 20,
+      take: 100,
       include: {
         proveedor: {
           select: { nombre: true },
@@ -38,7 +38,17 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(prendas, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+    // Ordenar para que EN_VITRINA siempre salga de primero
+    prendas.sort((a, b) => {
+      if (a.estado === 'EN_VITRINA' && b.estado !== 'EN_VITRINA') return -1;
+      if (a.estado !== 'EN_VITRINA' && b.estado === 'EN_VITRINA') return 1;
+      return 0;
+    });
+
+    // Si hay más de 20, devolver solo los primeros 20 más relevantes (los de vitrina)
+    const top20 = prendas.slice(0, 20);
+
+    return NextResponse.json(top20, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
   } catch (error) {
     console.error("Error buscando prendas:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

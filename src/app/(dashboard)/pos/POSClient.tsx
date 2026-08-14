@@ -70,12 +70,28 @@ export default function POSClient() {
         
         const cleanQ = q.trim().toUpperCase();
         if (filtradas.length === 1) {
-          const prodBarcode = (filtradas[0].codigoBarras || '').trim().toUpperCase();
-          const prodCode = (filtradas[0].codigo || '').trim().toUpperCase();
-          if (prodBarcode === cleanQ || prodCode === cleanQ) {
-            agregarAlCarrito(filtradas[0]);
-            setQuery("");
-            setResultados([]);
+          let coincidenciaActiva = filtradas[0];
+          
+          // Si encontró uno pero no está en vitrina, intentamos ver si el código base 
+          // coincide con la búsqueda y hay otro hermano en vitrina.
+          if (coincidenciaActiva.estado !== "EN_VITRINA") {
+            const reemplazo = filtradas.find((p: any) => 
+              p.estado === "EN_VITRINA" && 
+              p.codigo.split('-')[0].toUpperCase() === cleanQ
+            );
+            if (reemplazo) {
+              coincidenciaActiva = reemplazo;
+            }
+          }
+          
+          const prodBarcode = (coincidenciaActiva.codigoBarras || '').trim().toUpperCase();
+          const prodCode = (coincidenciaActiva.codigo || '').trim().toUpperCase();
+          if (prodBarcode === cleanQ || prodCode === cleanQ || prodCode.split('-')[0] === cleanQ) {
+            if (coincidenciaActiva.estado === "EN_VITRINA") {
+              agregarAlCarrito(coincidenciaActiva);
+              setQuery("");
+              setResultados([]);
+            }
           }
         }
       }
@@ -96,10 +112,22 @@ export default function POSClient() {
         const data = await res.json();
         const filtradas = data.filter((p: any) => !carrito.some(c => c.id === p.id));
         
-        const coincidenciaExacta = filtradas.find((p: any) => 
+        let coincidenciaExacta = filtradas.find((p: any) => 
           (p.codigoBarras || '').trim().toUpperCase() === cleanQ.toUpperCase() ||
           (p.codigo || '').trim().toUpperCase() === cleanQ.toUpperCase()
         );
+        
+        // CORRECCIÓN: Si escanean un código base (ej: DP1C013) y la coincidencia exacta ya se vendió,
+        // buscamos si hay OTRA unidad de la misma referencia que sí esté en vitrina.
+        if (coincidenciaExacta && coincidenciaExacta.estado !== "EN_VITRINA") {
+          const reemplazoValido = filtradas.find((p: any) => 
+            p.estado === "EN_VITRINA" && 
+            p.codigo.split('-')[0].toUpperCase() === cleanQ.toUpperCase()
+          );
+          if (reemplazoValido) {
+            coincidenciaExacta = reemplazoValido;
+          }
+        }
         
         if (coincidenciaExacta) {
           agregarAlCarrito(coincidenciaExacta);
