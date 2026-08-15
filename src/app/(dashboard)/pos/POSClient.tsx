@@ -435,11 +435,14 @@ export default function POSClient() {
             className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-2xl py-4 pl-12 pr-4 text-white text-lg focus:outline-none focus:ring-1 focus:ring-[var(--color-logo-yellow)] transition-colors shadow-sm font-sans"
             placeholder="Escanea el código de barras o busca prenda..."
             value={query}
-            onChange={(e) => buscarPrendas(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              buscarPrendas(e.target.value);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                manejarEnterScan(query);
+                manejarEnterScan(e.currentTarget.value);
               }
             }}
           />
