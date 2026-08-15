@@ -88,10 +88,8 @@ export default function InventoryClient() {
 
         // Calculate simple stats based on loaded page or overall if provided (here we estimate)
         // In production, we'd query a dashboard endpoint, but let's approximate or calculate from current batch
-        const enVitrina = data.prendas.filter((p: any) => p.estado === "EN_VITRINA");
-        setTotalEnVitrina(data.meta.total); // Approximation of inventory count
-        const totalVal = data.prendas.reduce((sum: number, p: any) => p.estado === "EN_VITRINA" ? sum + p.precioVenta : sum, 0);
-        setValorTotalVitrina(totalVal);
+        setTotalEnVitrina(data.meta.totalVitrinaCount || 0);
+        setValorTotalVitrina(data.meta.valorTotalVitrina || 0);
       }
     } catch (error) {
       console.error("Error cargando inventario:", error);

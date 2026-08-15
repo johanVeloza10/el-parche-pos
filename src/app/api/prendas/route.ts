@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
     
     // Paginación
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = 20;
+    const reqLimit = parseInt(searchParams.get("limit") || "20");
+    const limit = Math.min(Math.max(reqLimit, 1), 1000);
     const skip = (page - 1) * limit;
 
     const where = {
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
       } : {}),
     };
 
-    const [prendas, total] = await Promise.all([
+    const [prendas, total, totalVitrinaAgg] = await Promise.all([
       db.prenda.findMany({
         where,
         skip,
@@ -44,7 +45,12 @@ export async function GET(req: NextRequest) {
           proveedor: { select: { nombre: true } }
         }
       }),
-      db.prenda.count({ where })
+      db.prenda.count({ where }),
+      db.prenda.aggregate({
+        where: { ...where, estado: 'EN_VITRINA' },
+        _sum: { precioVenta: true },
+        _count: true
+      })
     ]);
 
     return NextResponse.json({
@@ -52,7 +58,9 @@ export async function GET(req: NextRequest) {
       meta: {
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
+        valorTotalVitrina: totalVitrinaAgg._sum.precioVenta || 0,
+        totalVitrinaCount: totalVitrinaAgg._count || 0,
       }
     });
 

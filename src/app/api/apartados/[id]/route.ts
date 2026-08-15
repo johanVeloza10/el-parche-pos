@@ -45,8 +45,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const { nuevoAbono, medioPago, desglosePago, liquidar } = body;
 
-    if (typeof nuevoAbono !== 'number' || nuevoAbono <= 0) {
-      return NextResponse.json({ error: "nuevoAbono debe ser mayor a 0" }, { status: 400 });
+    if (typeof nuevoAbono !== 'number' || nuevoAbono < 0 || (!liquidar && nuevoAbono <= 0)) {
+      return NextResponse.json({ error: "El monto del abono debe ser mayor a 0 (o 0 si ya está 100% pagado)" }, { status: 400 });
     }
 
     const result = await db.$transaction(async (tx) => {

@@ -109,7 +109,10 @@ export default function ApartadosClient() {
     if (!selectedApartado || !modalAction) return;
 
     const monto = Number(montoAbono);
-    if (isNaN(monto) || monto <= 0) return;
+    if (isNaN(monto) || (modalAction === "ABONAR" && monto <= 0) || (modalAction === "LIQUIDAR" && monto < 0)) {
+      alert("Por favor ingresa un monto válido.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -123,14 +126,17 @@ export default function ApartadosClient() {
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
+        alert(modalAction === "LIQUIDAR" ? "✅ Apartado liquidado y registrado como venta exitosamente" : "✅ Abono registrado exitosamente");
         await fetchApartados();
         closeModal();
       } else {
-        console.error("Error updating apartado");
+        alert("⚠️ No se pudo procesar: " + (data.error || "Error desconocido en el servidor"));
       }
-    } catch (error) {
-      console.error("Submit error:", error);
+    } catch (error: any) {
+      alert("Error de conexión: " + error.message);
     } finally {
       setIsSubmitting(false);
     }

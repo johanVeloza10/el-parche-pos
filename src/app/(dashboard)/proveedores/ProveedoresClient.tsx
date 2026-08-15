@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   RotateCcw,
   Check,
-  Building
+  Building,
+  Search
 } from "lucide-react";
 
 interface Proveedor {
@@ -45,6 +46,7 @@ const formatCOP = (num: number) => `$${Math.round(num).toLocaleString("es-CO")}`
 
 export default function ProveedoresClient() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
   const [modalNuevoProv, setModalNuevoProv] = useState(false);
   const [provSeleccionado, setProvSeleccionado] = useState<Proveedor | null>(null);
@@ -255,9 +257,22 @@ export default function ProveedoresClient() {
         
         {/* LISTADO DE PROVEEDORES */}
         <div className="lg:col-span-2 border-stitch-colombia rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4 bg-[var(--color-surface)]">
-          <h3 className="font-heading text-xl font-bold text-white border-b border-zinc-800 pb-3">
-            Lista de Diseñadores / Aliados
-          </h3>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-zinc-800 pb-3">
+            <h3 className="font-heading text-xl font-bold text-white">
+              Lista de Diseñadores / Aliados
+            </h3>
+            {/* LUPA DE BÚSQUEDA */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+              <input 
+                type="text"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar diseñador..."
+                className="w-full bg-[var(--color-surface-elevated)] border border-zinc-700 text-white rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[var(--color-primary)]"
+              />
+            </div>
+          </div>
           
           {cargando ? (
             <div className="py-24 flex flex-col justify-center items-center gap-4">
@@ -266,39 +281,48 @@ export default function ProveedoresClient() {
             </div>
           ) : (
             <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
-              {proveedores.map(p => (
-                <div 
-                  key={p.id}
-                  onClick={() => handleSeleccionarProveedor(p)}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${provSeleccionado?.id === p.id ? 'bg-[var(--color-primary)]/5 border-[var(--color-primary)]/50' : 'bg-[var(--color-surface-elevated)]/20 border-zinc-800 hover:border-white/10'}`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-white text-base font-sans">{p.nombre}</h4>
-                      {p.responsableIva ? (
-                        <span className="text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full font-bold">IVA</span>
-                      ) : (
-                        <span className="text-[9px] bg-zinc-500/10 text-zinc-400 border border-zinc-800 px-2 py-0.5 rounded-full font-bold">R-SIMPLE</span>
-                      )}
+              {proveedores
+                .filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || p.numeroDocumento.includes(busqueda))
+                .map(p => {
+                  const comisionBoutique = p.comisionDefaultPct || 30;
+                  const pagoDiseñador = (100 - comisionBoutique).toFixed(1).replace('.0', '');
+                  return (
+                    <div 
+                      key={p.id}
+                      onClick={() => handleSeleccionarProveedor(p)}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${provSeleccionado?.id === p.id ? 'bg-[var(--color-primary)]/5 border-[var(--color-primary)]/50' : 'bg-[var(--color-surface-elevated)]/20 border-zinc-800 hover:border-white/10'}`}
+                    >
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-bold text-white text-base font-sans">{p.nombre}</h4>
+                          <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">
+                            💰 Diseñador: {pagoDiseñador}% | Boutique: {comisionBoutique}%
+                          </span>
+                          {p.responsableIva ? (
+                            <span className="text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full font-bold">IVA</span>
+                          ) : (
+                            <span className="text-[9px] bg-zinc-500/10 text-zinc-400 border border-zinc-800 px-2 py-0.5 rounded-full font-bold">R-SIMPLE</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[var(--color-text-secondary)] font-mono">{p.tipoDocumento}: {p.numeroDocumento}</p>
+                        <div className="flex gap-4 text-xs text-[var(--color-text-muted)] mt-1.5 font-sans">
+                          <span>📦 Vitrina: <strong className="text-white">{p.prendasEnVitrina}</strong></span>
+                          <span>💸 Por liquidar: <strong className="text-white">{p.prendasVendidasSinLiquidar}</strong></span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 mt-3 sm:mt-0 justify-between">
+                        <div className="text-right">
+                          <p className="text-[9px] text-[var(--color-text-muted)] font-bold uppercase tracking-wider font-sans">Saldo Acumulado</p>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-mono font-bold mt-1 border ${getSemaforoColor(p.saldoPorPagar)}`}>
+                            {formatCOP(p.saldoPorPagar)}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
+                      </div>
                     </div>
-                    <p className="text-xs text-[var(--color-text-secondary)] font-mono">{p.tipoDocumento}: {p.numeroDocumento}</p>
-                    <div className="flex gap-4 text-xs text-[var(--color-text-muted)] mt-1.5 font-sans">
-                      <span>📦 Vitrina: <strong className="text-white">{p.prendasEnVitrina}</strong></span>
-                      <span>💸 Por liquidar: <strong className="text-white">{p.prendasVendidasSinLiquidar}</strong></span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 mt-3 sm:mt-0 justify-between">
-                    <div className="text-right">
-                      <p className="text-[9px] text-[var(--color-text-muted)] font-bold uppercase tracking-wider font-sans">Saldo Acumulado</p>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-mono font-bold mt-1 border ${getSemaforoColor(p.saldoPorPagar)}`}>
-                        {formatCOP(p.saldoPorPagar)}
-                      </span>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)]" />
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </div>
