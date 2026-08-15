@@ -257,12 +257,36 @@ export default function ReceptionClient() {
               {/* DETALLES DE LA PRENDA */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Código de Prenda (Opcional)</label>
-                <input 
-                  type="text" maxLength={50}
-                  className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none mb-4"
-                  value={codigoPropio} onChange={e => setCodigoPropio(e.target.value)}
-                  placeholder="Ej: DP1C001 (Dejar en blanco para auto-generar)"
-                />
+                <div className="relative">
+                  <input 
+                    type="text" maxLength={50}
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none mb-4 uppercase"
+                    value={codigoPropio} 
+                    onChange={async (e) => {
+                      const val = e.target.value;
+                      setCodigoPropio(val);
+                      if (val.trim().length >= 4) {
+                        try {
+                          const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(val.trim())}`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            const match = data.find((p: any) => p.codigo.split('-')[0].toUpperCase() === val.trim().toUpperCase());
+                            if (match) {
+                              if (match.descripcion) setDescripcion(match.descripcion);
+                              if (match.precioVenta) setPrecioVenta(match.precioVenta.toLocaleString('es-CO'));
+                              if (match.categoria) setCategoria(match.categoria);
+                              if (match.color) setColor(match.color);
+                              if (match.proveedorId) setProveedorId(match.proveedorId);
+                            }
+                          }
+                        } catch (err) {
+                          console.error("Auto-lookup error:", err);
+                        }
+                      }
+                    }}
+                    placeholder="Ej: DP1C001 (Escribe o escanea para auto-completar)"
+                  />
+                </div>
 
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Descripción corta de la prenda</label>
                 <input 
