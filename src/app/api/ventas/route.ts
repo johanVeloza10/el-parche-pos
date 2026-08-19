@@ -250,8 +250,12 @@ export async function POST(req: NextRequest) {
             updateData.ventasTransferencia = { increment: desglose.transferencia };
           }
         }
+        
+        if (notaCreditoBd) {
+          updateData.ventasNotaCredito = { increment: notaCreditoBd.valor >= totalVenta ? totalVenta : notaCreditoBd.valor };
+        }
 
-        updateData.totalVentasSistema = { increment: totalAPagar };
+        updateData.totalVentasSistema = { increment: totalVenta };
 
         await tx.cierreCaja.update({
           where: { id: cajaAbierta.id },

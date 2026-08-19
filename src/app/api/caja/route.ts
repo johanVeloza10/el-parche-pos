@@ -142,12 +142,13 @@ export async function PATCH(req: NextRequest) {
     });
 
     // Enviar WhatsApp a la dueña
-    const msg = `🔴 *CIERRE DE CAJA*\nFecha: ${new Date().toLocaleString("es-CO")}\nCajero: ${cajaCerrada.usuario?.nombre || "N/A"}\n\n` +
+    const msg = `💰 *CIERRE DE CAJA*\nFecha: ${new Date().toLocaleString("es-CO")}\nCajero: ${cajaCerrada.usuario?.nombre || "N/A"}\n\n` +
       `Total Ventas Sistema: $${cajaCerrada.totalVentasSistema.toLocaleString("es-CO")}\n` +
       `  - Efectivo: $${cajaCerrada.ventasEfectivo.toLocaleString("es-CO")}\n` +
       `  - Tarjeta: $${cajaCerrada.ventasTarjeta.toLocaleString("es-CO")}\n` +
-      `  - Transferencias: $${cajaCerrada.ventasTransferencia.toLocaleString("es-CO")}\n\n` +
-      `Fondo Inicial: $${cajaCerrada.fondoInicial.toLocaleString("es-CO")}\n` +
+      `  - Transferencias: $${cajaCerrada.ventasTransferencia.toLocaleString("es-CO")}\n` +
+      `  - Notas de Crédito: $${cajaCerrada.ventasNotaCredito.toLocaleString("es-CO")}\n\n` +
+      `Efectivo en Caja (Contado por cajero): $${cajaCerrada.efectivoContado?.toLocaleString("es-CO")}\n` +
       `Abonos Apartados: $${cajaCerrada.abonosApartados.toLocaleString("es-CO")}\n` +
       `Gastos Día: $${cajaCerrada.gastosEfectivo.toLocaleString("es-CO")}\n\n` +
       `Efectivo Esperado: $${efectivoEsperado.toLocaleString("es-CO")}\n` +

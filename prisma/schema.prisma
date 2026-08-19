@@ -371,10 +371,11 @@ model CierreCaja {
   ventasEfectivo      Int      @default(0)
   ventasTarjeta       Int      @default(0)
   ventasTransferencia Int      @default(0)
+  ventasNotaCredito   Int      @default(0)
   fondoInicial        Int      @default(0)
   gastosEfectivo      Int      @default(0)
   abonosApartados     Int      @default(0)
-    abonosCuentaCobrar AbonoCuentaCobrar[]
+  abonosCuentaCobrar  AbonoCuentaCobrar[]
   totalVentasSistema  Int      @default(0)
   
   efectivoContado     Int?
