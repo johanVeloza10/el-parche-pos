@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         prendas: {
           where: { estado: "VENDIDA" },
           include: {
-            itemVenta: true,
+            ventasHistorial: true,
           },
         },
         _count: {
@@ -32,17 +32,26 @@ export async function GET(req: NextRequest) {
     // Calcular el ranking
     const ranking = proveedores
       .map((prov: any) => {
-        const prendasVendidas = prov.prendas.filter((p: any) => p.itemVenta);
+        const prendasVendidas = prov.prendas.filter((p: any) => p.ventasHistorial && p.ventasHistorial.length > 0);
         const totalVentas = prendasVendidas.reduce(
-          (sum: number, p: any) => sum + (p.itemVenta?.precioVenta || 0),
+          (sum: number, p: any) => {
+            const lastVenta = p.ventasHistorial[p.ventasHistorial.length - 1];
+            return sum + (lastVenta?.precioVenta || 0);
+          },
           0
         );
         const totalComision = prendasVendidas.reduce(
-          (sum: number, p: any) => sum + (p.itemVenta?.comisionBoutique || 0),
+          (sum: number, p: any) => {
+            const lastVenta = p.ventasHistorial[p.ventasHistorial.length - 1];
+            return sum + (lastVenta?.comisionBoutique || 0);
+          },
           0
         );
         const totalParaProveedor = prendasVendidas.reduce(
-          (sum: number, p: any) => sum + (p.itemVenta?.paraProveedor || 0),
+          (sum: number, p: any) => {
+            const lastVenta = p.ventasHistorial[p.ventasHistorial.length - 1];
+            return sum + (lastVenta?.paraProveedor || 0);
+          },
           0
         );
 

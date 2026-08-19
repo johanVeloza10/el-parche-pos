@@ -1,13 +1,13 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import ReceptionClient from "./ReceptionClient";
+import RecepcionContainer from "./RecepcionContainer";
 
 export const metadata = {
   title: "Recepción | El Parche",
-  description: "Ingreso de mercancía a El Parche Diseño",
+  description: "Ingreso y Salida de mercancía a El Parche Diseño",
 };
 
 export default function ReceptionPage() {
-  return <ReceptionClient />;
+  return <RecepcionContainer />;
 }

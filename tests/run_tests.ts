@@ -418,7 +418,7 @@ async function runTests() {
     if (!prendaVendida) throw new Error("No hay prendas vendidas para probar");
     
     // Verificar que ya tiene un ItemVenta asociado
-    const item = await db.itemVenta.findUnique({ where: { prendaId: prendaVendida.id } });
+    const item = await db.itemVenta.findFirst({ where: { prendaId: prendaVendida.id } });
     if (!item) {
       // Puede que no tenga item si se vendió en histórico. Solo verificamos la constraint existe.
       return;

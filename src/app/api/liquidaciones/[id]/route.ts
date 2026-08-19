@@ -59,8 +59,8 @@ export async function PUT(
     }
 
     // Validar transiciones de estado lógicas
-    if (estado === "PAGADA" && liquidacionExistente.estado !== "APROBADA") {
-      return NextResponse.json({ error: "Solo se pueden pagar liquidaciones que estén previamente APROBADAS" }, { status: 400 });
+    if (estado === "PAGADA" && liquidacionExistente.estado === "PAGADA") {
+      return NextResponse.json({ error: "La liquidación ya se encuentra pagada" }, { status: 400 });
     }
 
     const updated = await db.liquidacion.update({

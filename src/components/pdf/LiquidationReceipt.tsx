@@ -153,8 +153,8 @@ export const LiquidationReceipt: React.FC<LiquidationProps> = ({ liq, config }) 
           <View style={styles.tableHeader}>
             <Text style={styles.colDesc}>Descripción</Text>
             <Text style={styles.colCode}>Código</Text>
-            <Text style={styles.colVal}>PVP Cobrado</Text>
-            <Text style={styles.colNet}>Neto Prov.</Text>
+            <Text style={styles.colVal}>PVP (+75%)</Text>
+            <Text style={styles.colNet}>Consignación (Base)</Text>
           </View>
           {liq.items.map((item: any, idx: number) => (
             <View key={idx} style={styles.tableRow}>

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, medioPago, desglosePago, clienteId, abonoCredito } = body;
+    const { items, medioPago, desglosePago, clienteId, abonoCredito, notaCreditoId } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "No hay prendas en la venta" }, { status: 400 });
@@ -42,20 +42,27 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 1. Bloqueamos/Revisamos las prendas
+      // 1. Control de Concurrencia: Bloqueamos/Revisamos las prendas
+      // Actualizamos atómicamente para evitar que otra caja venda la misma prenda al mismo tiempo
+      const lockResult = await tx.prenda.updateMany({
+        where: {
+          id: { in: prendaIds },
+          estado: "EN_VITRINA"
+        },
+        data: {
+          estado: "VENDIDA",
+          fechaVenta: new Date()
+        }
+      });
+
+      if (lockResult.count !== prendaIds.length) {
+        throw new Error("Control de Concurrencia: Una o más prendas acaban de ser vendidas por otra caja o ya no están en vitrina. Por favor, refresca e intenta de nuevo.");
+      }
+
+      // Ahora leemos las prendas sabiendo que son exclusivamente nuestras en esta transacción
       const prendasEnBd = await tx.prenda.findMany({
         where: { id: { in: prendaIds } },
       });
-
-      if (prendasEnBd.length !== items.length) {
-        throw new Error("Algunas prendas no existen");
-      }
-
-      for (const p of prendasEnBd) {
-        if (p.estado !== "EN_VITRINA") {
-          throw new Error(`La prenda ${p.codigo} ya no está disponible (Estado: ${p.estado})`);
-        }
-      }
 
       // 2. Preparamos los items de venta calculando comisiones
       let subtotalVenta = 0;
@@ -97,6 +104,31 @@ export async function POST(req: NextRequest) {
         };
       });
 
+      // 2.5 Verificar Nota de Crédito
+      let notaCreditoBd = null;
+      let surplusNota = 0;
+      let totalAPagar = totalVenta;
+
+      if (notaCreditoId) {
+        notaCreditoBd = await tx.notaCredito.findUnique({ where: { id: notaCreditoId } });
+        if (!notaCreditoBd) throw new Error("Nota de crédito no encontrada");
+        if (notaCreditoBd.estado !== "VIGENTE") throw new Error("La nota de crédito no está vigente o ya fue usada");
+        
+        if (notaCreditoBd.valor >= totalVenta) {
+          // Cubre toda la venta, el sobrante se lo queda la tienda
+          surplusNota = notaCreditoBd.valor - totalVenta;
+          totalAPagar = 0;
+        } else {
+          // Cubre una parte, el cliente debe pagar el resto
+          totalAPagar = totalVenta - notaCreditoBd.valor;
+        }
+        
+        // Sumar el surplus a la comisión boutique del primer item para que no se pierda la ganancia
+        if (surplusNota > 0 && itemsParaCrear.length > 0) {
+          itemsParaCrear[0].comisionBoutique += surplusNota;
+        }
+      }
+
       // 3. Crear la Venta
       const venta = await tx.venta.create({
         data: {
@@ -123,14 +155,18 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      // 4. Actualizar estado de las prendas a VENDIDA
-      await tx.prenda.updateMany({
-        where: { id: { in: prendaIds } },
-        data: { 
-          estado: "VENDIDA",
-          fechaVenta: new Date()
-        }
-      });
+      // 4. (El estado VENDIDA ya fue actualizado en el paso 1 por control de concurrencia)
+
+      // 4.1 Marcar nota de crédito como USADA
+      if (notaCreditoBd) {
+        await tx.notaCredito.update({
+          where: { id: notaCreditoBd.id },
+          data: {
+            estado: "USADA",
+            usadaEnVentaId: venta.id
+          }
+        });
+      }
 
       // 4.5. Si es crédito, crear CuentaPorCobrar
       if (medioPago === "CREDITO") {
@@ -194,11 +230,11 @@ export async function POST(req: NextRequest) {
           }
           // El total de la venta se suma a reportes (totalVentasSistema)
         } else if (medioPago === "EFECTIVO") {
-          updateData.ventasEfectivo = { increment: totalVenta };
+          updateData.ventasEfectivo = { increment: totalAPagar };
         } else if (medioPago === "TARJETA") {
-          updateData.ventasTarjeta = { increment: totalVenta };
+          updateData.ventasTarjeta = { increment: totalAPagar };
         } else if (medioPago === "TRANSFERENCIA") {
-          updateData.ventasTransferencia = { increment: totalVenta };
+          updateData.ventasTransferencia = { increment: totalAPagar };
         } else if (medioPago === "MIXTO" && desglosePago) {
           // Parse desglose — it may already be an object from the frontend body
           const desglose = typeof desglosePago === "string"
@@ -215,7 +251,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        updateData.totalVentasSistema = { increment: totalVenta };
+        updateData.totalVentasSistema = { increment: totalAPagar };
 
         await tx.cierreCaja.update({
           where: { id: cajaAbierta.id },

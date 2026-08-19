@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         prendas: {
           where: { deletedAt: null },
           include: {
-            itemVenta: {
+            ventasHistorial: {
               include: { itemLiquidacion: true }
             }
           }
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Calcular métricas para cada proveedor
-    const resultado = proveedores.map((prov: any) => {
+      const resultado = proveedores.map((prov: any) => {
       let prendasEnVitrina = 0;
       let prendasVendidasSinLiquidar = 0;
       let saldoPorPagar = 0;
@@ -34,9 +34,12 @@ export async function GET(req: NextRequest) {
       for (const prenda of prov.prendas) {
         if (prenda.estado === "EN_VITRINA") {
           prendasEnVitrina++;
-        } else if (prenda.estado === "VENDIDA" && prenda.itemVenta && !prenda.itemVenta.itemLiquidacion) {
-          prendasVendidasSinLiquidar++;
-          saldoPorPagar += prenda.itemVenta.paraProveedor;
+        } else if (prenda.estado === "VENDIDA" && prenda.ventasHistorial && prenda.ventasHistorial.length > 0) {
+          const lastVenta = prenda.ventasHistorial[prenda.ventasHistorial.length - 1];
+          if (!lastVenta.itemLiquidacion) {
+            prendasVendidasSinLiquidar++;
+            saldoPorPagar += lastVenta.paraProveedor;
+          }
         }
       }
 

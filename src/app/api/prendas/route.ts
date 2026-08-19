@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(Math.max(reqLimit, 1), 1000);
     const skip = (page - 1) * limit;
 
+    const vista = searchParams.get("vista") || "individual";
+
     const where = {
       deletedAt: null,
       ...(estado ? { estado } : {}),
@@ -35,7 +37,53 @@ export async function GET(req: NextRequest) {
       } : {}),
     };
 
-    const [prendas, total, totalVitrinaAgg] = await Promise.all([
+    const totalVitrinaAgg = await db.prenda.aggregate({
+      where: { ...where, estado: 'EN_VITRINA' },
+      _sum: { precioVenta: true },
+      _count: true
+    });
+
+    if (vista === "agrupada") {
+      const todasLasPrendas = await db.prenda.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: { proveedor: { select: { nombre: true } } }
+      });
+      
+      const grupos = new Map<string, any>();
+      for (const p of todasLasPrendas) {
+        const ref = p.codigo.split('-')[0].toUpperCase();
+        if (!grupos.has(ref)) {
+           grupos.set(ref, {
+             ...p,
+             codigo: ref,
+             codigoBarras: ref,
+             stock: 1,
+             ids: [p.id]
+           });
+        } else {
+           const g = grupos.get(ref);
+           g.stock += 1;
+           g.ids.push(p.id);
+        }
+      }
+
+      const arrGrupos = Array.from(grupos.values());
+      const paginatedGrupos = arrGrupos.slice(skip, skip + limit);
+
+      return NextResponse.json({
+        prendas: paginatedGrupos,
+        meta: {
+          total: arrGrupos.length,
+          page,
+          totalPages: Math.ceil(arrGrupos.length / limit),
+          valorTotalVitrina: totalVitrinaAgg._sum.precioVenta || 0,
+          totalVitrinaCount: totalVitrinaAgg._count || 0,
+        }
+      });
+    }
+
+    const [prendas, total] = await Promise.all([
       db.prenda.findMany({
         where,
         skip,
@@ -45,12 +93,7 @@ export async function GET(req: NextRequest) {
           proveedor: { select: { nombre: true } }
         }
       }),
-      db.prenda.count({ where }),
-      db.prenda.aggregate({
-        where: { ...where, estado: 'EN_VITRINA' },
-        _sum: { precioVenta: true },
-        _count: true
-      })
+      db.prenda.count({ where })
     ]);
 
     return NextResponse.json({
@@ -114,13 +157,36 @@ export async function POST(req: NextRequest) {
     const startConsecutivo = updatedConfig.consecutivoActual - qty + 1;
     const anio = new Date().getFullYear();
 
+    let startIndex = 1;
+    if (codigoPropio) {
+      const existentes = await db.prenda.findMany({
+        where: { codigo: { startsWith: codigoPropio } },
+        select: { codigo: true }
+      });
+      if (existentes.length > 0) {
+        let maxNum = 0;
+        for (const ex of existentes) {
+          const parts = ex.codigo.split('-');
+          const lastPart = parts[parts.length - 1];
+          if (parts.length > 1 && !isNaN(parseInt(lastPart))) {
+            maxNum = Math.max(maxNum, parseInt(lastPart));
+          } else if (ex.codigo === codigoPropio) {
+            maxNum = Math.max(maxNum, 1);
+          }
+        }
+        startIndex = maxNum + 1;
+      }
+    }
+
     for (let i = 0; i < qty; i++) {
       let codigo = codigoPropio;
       let codigoBarras = codigoPropio;
 
-      if (codigoPropio && qty > 1) {
-        codigo = `${codigoPropio}-${i+1}`;
-        codigoBarras = `${codigoPropio}-${i+1}`;
+      if (codigoPropio) {
+        if (startIndex > 1 || qty > 1) {
+          codigo = `${codigoPropio}-${startIndex + i}`;
+          codigoBarras = `${codigoPropio}-${startIndex + i}`;
+        }
       }
 
       if (!codigo) {

@@ -24,8 +24,10 @@ export async function GET(req: NextRequest) {
         prendas: {
           some: {
             estado: "VENDIDA",
-            itemVenta: {
-              itemLiquidacion: null,
+            ventasHistorial: {
+              some: {
+                itemLiquidacion: null,
+              },
             },
           },
         },
@@ -34,27 +36,33 @@ export async function GET(req: NextRequest) {
         prendas: {
           where: {
             estado: "VENDIDA",
-            itemVenta: {
-              itemLiquidacion: null,
+            ventasHistorial: {
+              some: {
+                itemLiquidacion: null,
+              },
             },
           },
-          include: { itemVenta: true },
+          include: { ventasHistorial: true },
         },
       },
     });
 
     for (const prov of proveedoresConVentasSinLiquidar) {
-      const montoPendiente = prov.prendas.reduce(
-        (sum: number, p: any) => sum + (p.itemVenta?.paraProveedor || 0),
-        0
-      );
-      if (montoPendiente > 0) {
+      let totalAdeudado = 0;
+      prov.prendas.forEach((p: any) => {
+        const ventaActiva = p.ventasHistorial?.find((v: any) => !v.itemLiquidacion);
+        if (ventaActiva) {
+          totalAdeudado += ventaActiva.paraProveedor || 0;
+        }
+      });
+      
+      if (totalAdeudado > 0) {
         alertas.push({
           tipo: "liquidacion",
           icono: "💸",
-          titulo: "Liquidación pendiente",
-          mensaje: `Tienes $${montoPendiente.toLocaleString("es-CO")} pendientes por liquidar a ${prov.nombre} (${prov.prendas.length} prendas vendidas)`,
-          urgencia: montoPendiente > 1000000 ? "alta" : "media",
+          titulo: `Liquidación Pendiente - ${prov.nombre}`,
+          mensaje: `Tienes $${totalAdeudado.toLocaleString("es-CO")} pendientes por liquidar a ${prov.nombre} (${prov.prendas.length} prendas vendidas)`,
+          urgencia: totalAdeudado > 1000000 ? "alta" : "media",
         });
       }
     }

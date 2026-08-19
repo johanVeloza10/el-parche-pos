@@ -33,6 +33,7 @@ export default function InventoryClient() {
   const [query, setQuery] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroProveedor, setFiltroProveedor] = useState("");
+  const [vista, setVista] = useState<"individual" | "agrupada">("agrupada");
   
   // Pagination
   const [pagina, setPagina] = useState(1);
@@ -56,7 +57,7 @@ export default function InventoryClient() {
 
   useEffect(() => {
     cargarInventario();
-  }, [pagina, filtroEstado, filtroProveedor]);
+  }, [pagina, filtroEstado, filtroProveedor, vista]);
 
   const cargarProveedores = async () => {
     try {
@@ -75,6 +76,7 @@ export default function InventoryClient() {
     try {
       const url = new URL("/api/prendas", window.location.origin);
       url.searchParams.append("page", pagina.toString());
+      url.searchParams.append("vista", vista);
       if (filtroEstado) url.searchParams.append("estado", filtroEstado);
       if (filtroProveedor) url.searchParams.append("proveedorId", filtroProveedor);
       if (query) url.searchParams.append("q", query);
@@ -334,6 +336,23 @@ export default function InventoryClient() {
             </button>
           </div>
         </form>
+        
+        <div className="flex bg-black/40 border border-zinc-800 rounded-xl p-1 mt-4 w-fit">
+          <button
+            type="button"
+            onClick={() => setVista("agrupada")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${vista === "agrupada" ? "bg-[var(--color-primary)] text-black" : "text-white hover:text-[var(--color-primary)]"}`}
+          >
+            Vista Agrupada
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista("individual")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${vista === "individual" ? "bg-[var(--color-primary)] text-black" : "text-white hover:text-[var(--color-primary)]"}`}
+          >
+            Piezas Individuales
+          </button>
+        </div>
       </div>
 
       {/* TABLA DE INVENTARIO */}
@@ -354,23 +373,25 @@ export default function InventoryClient() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[var(--color-surface-elevated)]/50 text-[var(--color-text-secondary)] text-[10px] sm:text-xs uppercase font-bold font-sans border-b border-zinc-800">
-                  <th className="p-4">Código</th>
-                  <th className="p-4">Prenda / Referencia</th>
+                  <th className="p-4">{vista === "agrupada" ? "Referencia" : "Código"}</th>
+                  <th className="p-4">Prenda / Descripción</th>
                   <th className="p-4">Proveedor</th>
                   <th className="p-4 text-right">Precio Venta</th>
-                  <th className="p-4 text-right">Consignación / Costo</th>
-                  <th className="p-4">Ingreso</th>
-                  <th className="p-4">Antigüedad</th>
-                  <th className="p-4">Estado</th>
-                  <th className="p-4 text-center">Acciones</th>
+                  {vista === "individual" && <th className="p-4 text-right">Consignación / Costo</th>}
+                  {vista === "individual" && <th className="p-4">Ingreso</th>}
+                  {vista === "individual" && <th className="p-4">Antigüedad</th>}
+                  {vista === "individual" && <th className="p-4">Estado</th>}
+                  {vista === "agrupada" && <th className="p-4 text-center text-[var(--color-primary)]">Stock</th>}
+                  {vista === "individual" && <th className="p-4 text-center">Acciones</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800 text-sm text-white font-sans">
-                {prendas.map((prenda) => {
+                {prendas.map((prenda, idx) => {
                   const esEditando = editId === prenda.id;
+                  const keyId = prenda.id || idx;
                   return (
                     <tr 
-                      key={prenda.id} 
+                      key={keyId} 
                       className={`hover:bg-[var(--color-surface-elevated)]/20 transition-colors ${esEditando ? 'bg-[var(--color-primary)]/5' : ''}`}
                     >
                       {/* Código */}
@@ -409,95 +430,103 @@ export default function InventoryClient() {
                         )}
                       </td>
 
-                      {/* Costo / Consignación */}
-                      <td className="p-4 text-right">
-                        {esEditando ? (
-                          <input 
-                            type="number" 
-                            className="bg-black border border-zinc-700 rounded px-2 py-1 w-24 text-right text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
-                            value={editValorProveedor}
-                            onChange={(e) => setEditValorProveedor(e.target.value)}
-                          />
-                        ) : (
-                          <span className="text-zinc-400 font-mono text-xs">
-                            {formatCOP(prenda.valorProveedor || prenda.costoProduccion || 0)}
-                          </span>
-                        )}
-                      </td>
+                      {vista === "individual" ? (
+                        <>
+                          {/* Costo / Consignación */}
+                          <td className="p-4 text-right">
+                            {esEditando ? (
+                              <input 
+                                type="number" 
+                                className="bg-black border border-zinc-700 rounded px-2 py-1 w-24 text-right text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
+                                value={editValorProveedor}
+                                onChange={(e) => setEditValorProveedor(e.target.value)}
+                              />
+                            ) : (
+                              <span className="text-zinc-400 font-mono text-xs">
+                                {formatCOP(prenda.valorProveedor || prenda.costoProduccion || 0)}
+                              </span>
+                            )}
+                          </td>
 
-                      {/* Fecha de ingreso */}
-                      <td className="p-4 font-mono text-xs text-zinc-400">
-                        {new Date(prenda.fechaIngreso).toLocaleDateString("es-CO", {
-                          day: "numeric",
-                          month: "short",
-                          year: "2-digit"
-                        })}
-                      </td>
+                          {/* Fecha de ingreso */}
+                          <td className="p-4 font-mono text-xs text-zinc-400">
+                            {new Date(prenda.fechaIngreso).toLocaleDateString("es-CO", {
+                              day: "numeric",
+                              month: "short",
+                              year: "2-digit"
+                            })}
+                          </td>
 
-                      {/* Antigüedad */}
-                      <td className="p-4">
-                        {getAntiguedadBadge(prenda.fechaIngreso)}
-                      </td>
+                          {/* Antigüedad */}
+                          <td className="p-4">
+                            {getAntiguedadBadge(prenda.fechaIngreso)}
+                          </td>
 
-                      {/* Estado */}
-                      <td className="p-4">
-                        {esEditando ? (
-                          <select
-                            className="bg-black border border-zinc-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[var(--color-primary)]"
-                            value={editEstado}
-                            onChange={(e) => setEditEstado(e.target.value)}
-                          >
-                            <option value="EN_VITRINA">En Vitrina (Disponible)</option>
-                            <option value="RESERVADO">Reservado (Código Vacío)</option>
-                            <option value="APARTADA">Apartada (Separado)</option>
-                            <option value="VENDIDA">Vendida</option>
-                            <option value="DEVUELTA_PROVEEDOR">Devuelta a Proveedor</option>
-                            <option value="DADA_BAJA">Dada de Baja (Dañada)</option>
-                          </select>
-                        ) : (
-                          <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${getEstadoColor(prenda.estado)}`}>
-                            {prenda.estado.replace(/_/g, " ")}
-                          </span>
-                        )}
-                      </td>
+                          {/* Estado */}
+                          <td className="p-4">
+                            {esEditando ? (
+                              <select
+                                className="bg-black border border-zinc-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[var(--color-primary)]"
+                                value={editEstado}
+                                onChange={(e) => setEditEstado(e.target.value)}
+                              >
+                                <option value="EN_VITRINA">En Vitrina (Disponible)</option>
+                                <option value="RESERVADO">Reservado (Código Vacío)</option>
+                                <option value="APARTADA">Apartada (Separado)</option>
+                                <option value="VENDIDA">Vendida</option>
+                                <option value="DEVUELTA_PROVEEDOR">Devuelta a Proveedor</option>
+                                <option value="DADA_BAJA">Dada de Baja (Dañada)</option>
+                              </select>
+                            ) : (
+                              <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${getEstadoColor(prenda.estado)}`}>
+                                {prenda.estado.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </td>
 
-                      {/* Acciones */}
-                      <td className="p-4 text-center">
-                        <div className="flex justify-center items-center gap-2">
-                          {esEditando ? (
-                            <>
-                              <button 
-                                onClick={() => guardarEdicion(prenda.id)}
-                                disabled={guardandoEdicion}
-                                className="p-1.5 rounded bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={cancelarEdicion}
-                                className="p-1.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button 
-                                onClick={() => iniciarEdicion(prenda)}
-                                className="p-1.5 rounded bg-[var(--color-surface-elevated)] text-zinc-300 border border-zinc-700 hover:border-white/20 hover:text-white"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={() => eliminarPrenda(prenda.id)}
-                                className="p-1.5 rounded bg-red-500/10 text-red-400/80 border border-red-500/20 hover:bg-red-500/20 hover:text-red-400"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                          {/* Acciones */}
+                          <td className="p-4 text-center">
+                            <div className="flex justify-center items-center gap-2">
+                              {esEditando ? (
+                                <>
+                                  <button 
+                                    onClick={() => guardarEdicion(prenda.id)}
+                                    disabled={guardandoEdicion}
+                                    className="p-1.5 rounded bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    onClick={cancelarEdicion}
+                                    className="p-1.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button 
+                                    onClick={() => iniciarEdicion(prenda)}
+                                    className="p-1.5 rounded bg-[var(--color-surface-elevated)] text-zinc-300 border border-zinc-700 hover:border-white/20 hover:text-white"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    onClick={() => eliminarPrenda(prenda.id)}
+                                    className="p-1.5 rounded bg-red-500/10 text-red-400/80 border border-red-500/20 hover:bg-red-500/20 hover:text-red-400"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <td className="p-4 text-center font-bold text-xl text-[var(--color-primary)]">
+                          {prenda.stock}
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

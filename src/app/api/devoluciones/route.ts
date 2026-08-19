@@ -27,12 +27,12 @@ export async function POST(req: NextRequest) {
       if (!venta) throw new Error("Venta no encontrada");
       if (venta.anulada) throw new Error("La venta ya está anulada");
 
-      const itemVenta = await tx.itemVenta.findUnique({
-        where: { prendaId: prendaId },
+      const itemVenta = await tx.itemVenta.findFirst({
+        where: { prendaId: prendaId, ventaId: venta.id },
         include: { itemLiquidacion: true }
       });
 
-      if (!itemVenta || itemVenta.ventaId !== venta.id) {
+      if (!itemVenta) {
         throw new Error("La prenda no pertenece a esta venta");
       }
 

@@ -121,8 +121,8 @@ export default function ReceptionClient() {
         talla,
         color,
         precioVenta: parseInt(precioVenta.replace(/\D/g, '') || "0"),
-        comisionPct: origen === "CONSIGNACION" && modoComision === "PORCENTAJE" ? parseFloat(comisionPct) : null,
-        valorProveedor: origen === "CONSIGNACION" && modoComision === "VALOR_FIJO" ? parseInt(valorProveedor.replace(/\D/g, '') || "0") : null,
+        comisionPct: null,
+        valorProveedor: origen === "CONSIGNACION" ? parseInt(valorProveedor.replace(/\D/g, '') || "0") : null,
         costoProduccion: origen === "PRODUCCION_PROPIA" ? parseInt(costoProduccion.replace(/\D/g, '') || "0") : null,
         codigoPropio: codigoPropio.trim() || undefined,
         cantidad: parseInt(cantidad || "1"),
@@ -214,29 +214,26 @@ export default function ReceptionClient() {
                     </select>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Acuerdo Comercial</label>
-                    {modoComision === "PORCENTAJE" ? (
-                      <div className="relative">
-                        <input 
-                          type="number" step="0.1" required
-                          className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl px-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none pr-8"
-                          value={comisionPct} onChange={e => setComisionPct(e.target.value)}
-                        />
-                        <span className="absolute right-4 top-3 text-[var(--color-text-muted)]">%</span>
-                        <span className="text-xs text-[var(--color-text-muted)] mt-1 block">Comisión que gana el proveedor</span>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <span className="absolute left-4 top-3 text-[var(--color-text-muted)]">$</span>
-                        <input 
-                          type="text" required
-                          className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl pl-8 pr-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none"
-                          value={valorProveedor} onChange={e => setValorProveedor(e.target.value)}
-                          placeholder="Valor fijo"
-                        />
-                        <span className="text-xs text-[var(--color-text-muted)] mt-1 block">Lo que se le pagará al proveedor</span>
-                      </div>
-                    )}
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Costo Consignación ($ COP) *</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3 text-[var(--color-text-muted)]">$</span>
+                      <input 
+                        type="text" required
+                        className="w-full bg-[var(--color-surface)] border border-[var(--color-surface-elevated)] rounded-xl pl-8 pr-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none"
+                        value={valorProveedor} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          setValorProveedor(val ? parseInt(val).toLocaleString("es-CO") : "");
+                          if (val) {
+                            const venta = Math.round(parseInt(val) * 1.75);
+                            setPrecioVenta(venta.toLocaleString("es-CO"));
+                          } else {
+                            setPrecioVenta("");
+                          }
+                        }}
+                        placeholder="Ej: 90000"
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -247,7 +244,10 @@ export default function ReceptionClient() {
                     <input 
                       type="text" required
                       className="w-full bg-[var(--color-surface)] border border-[var(--color-secondary)]/30 rounded-xl pl-8 pr-4 py-3 text-white focus:border-[var(--color-secondary)] focus:outline-none"
-                      value={costoProduccion} onChange={e => setCostoProduccion(e.target.value)}
+                      value={costoProduccion} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setCostoProduccion(val ? parseInt(val).toLocaleString("es-CO") : "");
+                      }}
                       placeholder="Ej: 45000"
                     />
                   </div>
@@ -256,7 +256,7 @@ export default function ReceptionClient() {
 
               {/* DETALLES DE LA PRENDA */}
               <div>
-                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Código de Prenda (Opcional)</label>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Referencia / Código (Opcional)</label>
                 <div className="relative">
                   <input 
                     type="text" maxLength={50}
@@ -270,10 +270,11 @@ export default function ReceptionClient() {
                           const res = await fetch(`/api/prendas/buscar?q=${encodeURIComponent(val.trim())}`);
                           if (res.ok) {
                             const data = await res.json();
-                            const match = data.find((p: any) => p.codigo.split('-')[0].toUpperCase() === val.trim().toUpperCase());
+                            const match = data.find((p: any) => p.codigo.split('-')[0].toUpperCase() === val.trim().toUpperCase() || p.codigo.toUpperCase() === val.trim().toUpperCase());
                             if (match) {
                               if (match.descripcion) setDescripcion(match.descripcion);
                               if (match.precioVenta) setPrecioVenta(match.precioVenta.toLocaleString('es-CO'));
+                              if (match.valorProveedor) setValorProveedor(match.valorProveedor.toLocaleString('es-CO'));
                               if (match.categoria) setCategoria(match.categoria);
                               if (match.color) setColor(match.color);
                               if (match.proveedorId) setProveedorId(match.proveedorId);
@@ -318,12 +319,13 @@ export default function ReceptionClient() {
                 </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Precio de Venta ($ COP) *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Precio Venta Público (+75%)</label>
                       <input 
-                        type="text" required
-                        className="w-full bg-black border border-[var(--color-surface-elevated)] rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[var(--color-primary)] font-mono text-lg"
+                        type="text" required readOnly={origen === "CONSIGNACION"}
+                        className={`w-full border rounded-xl py-2 px-3 text-white focus:outline-none font-mono text-lg ${origen === "CONSIGNACION" ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]' : 'bg-black border-[var(--color-surface-elevated)] focus:border-[var(--color-primary)]'}`}
                         value={precioVenta}
                         onChange={e => {
+                          if (origen === "CONSIGNACION") return;
                           const val = e.target.value.replace(/\D/g, '');
                           setPrecioVenta(val ? parseInt(val).toLocaleString("es-CO") : "");
                         }}
@@ -355,18 +357,6 @@ export default function ReceptionClient() {
                     <option value="L">L</option>
                     <option value="XL">XL</option>
                   </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Precio de Venta al Público</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3 text-[var(--color-primary)]">$</span>
-                    <input 
-                      type="text" required
-                      className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 rounded-xl pl-8 pr-4 py-3 text-white focus:border-[var(--color-primary)] focus:outline-none text-lg font-bold"
-                      value={precioVenta} onChange={e => setPrecioVenta(e.target.value)}
-                      placeholder="85000"
-                    />
-                  </div>
                 </div>
               </div>
 

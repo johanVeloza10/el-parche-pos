@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       include: {
         prendas: {
           include: {
-            itemVenta: true
+            ventasHistorial: true
           }
         }
       }
@@ -104,10 +104,11 @@ export async function GET(req: NextRequest) {
       let devoluciones = 0;
 
       for (const p of prov.prendas) {
-        if (p.estado === "VENDIDA" && p.itemVenta) {
-          const precioCobrado = p.itemVenta.precioVenta - p.itemVenta.descuentoItem;
+        if (p.estado === "VENDIDA" && p.ventasHistorial && p.ventasHistorial.length > 0) {
+          const lastVenta = p.ventasHistorial[p.ventasHistorial.length - 1];
+          const precioCobrado = lastVenta.precioVenta - lastVenta.descuentoItem;
           ventasTotales += precioCobrado;
-          comisionTienda += p.itemVenta.comisionBoutique;
+          comisionTienda += lastVenta.comisionBoutique;
         } else if (p.estado === "DEVUELTA_PROVEEDOR") {
           devoluciones++;
         }

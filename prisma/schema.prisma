@@ -117,7 +117,7 @@ model Prenda {
   fechaIngreso      DateTime @default(now())
   fechaVenta        DateTime?
   
-  itemVenta         ItemVenta?
+  ventasHistorial   ItemVenta[]
   apartado          Apartado?
   
   deletedAt         DateTime? // Soft delete
@@ -194,7 +194,7 @@ model ItemVenta {
   ventaId            String
   venta              Venta    @relation(fields: [ventaId], references: [id])
   
-  prendaId           String   @unique
+  prendaId           String
   prenda             Prenda   @relation(fields: [prendaId], references: [id])
   
   precioVenta        Int      // Snapshot
