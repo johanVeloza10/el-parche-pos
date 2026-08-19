@@ -14,6 +14,7 @@ export default function POSClient() {
   
   const [medioPago, setMedioPago] = useState<"EFECTIVO" | "TARJETA" | "TRANSFERENCIA" | "MIXTO" | "CREDITO">("EFECTIVO");
   const [efectivoRecibido, setEfectivoRecibido] = useState("");
+  const [notaCreditoId, setNotaCreditoId] = useState("");
   
   // Pago mixto
   const [montoEfectivo, setMontoEfectivo] = useState("");
@@ -270,7 +271,8 @@ export default function POSClient() {
           medioPago,
           desglosePago,
           clienteId: clienteSeleccionado?.id || null,
-          abonoCredito: abonoCreditoNum
+          abonoCredito: abonoCreditoNum > 0 ? abonoCreditoNum : undefined,
+          notaCreditoId: notaCreditoId.trim() || undefined
         }),
       });
 
@@ -861,12 +863,25 @@ export default function POSClient() {
             </div>
             
             <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
-              <div>
-                <p className="text-center text-[var(--color-text-secondary)] mb-1 font-sans text-xs uppercase tracking-wider">Total a cobrar</p>
-                <p className="text-center text-4xl font-heading font-bold text-[var(--color-primary)]">${total.toLocaleString('es-CO')}</p>
-              </div>
+              <div className="bg-black/30 p-4 sm:p-6 mb-6">
+                  <p className="text-center text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-widest mb-1 font-sans">Total a Pagar</p>
+                  <p className="text-center text-4xl font-heading font-bold text-[var(--color-primary)]">${total.toLocaleString('es-CO')}</p>
+                </div>
 
-              <div className="grid grid-cols-5 gap-2">
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Nota de Crédito (Opcional para Cambios)</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Pega el ID de la Nota de Crédito aquí" 
+                      value={notaCreditoId}
+                      onChange={(e) => setNotaCreditoId(e.target.value)}
+                      className="w-full bg-[var(--color-surface)] border border-zinc-800 rounded-xl py-3 px-4 text-white font-mono focus:outline-none focus:border-[var(--color-primary)] text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2">
                 <button 
                   onClick={() => setMedioPago("EFECTIVO")}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${medioPago === 'EFECTIVO' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]' : 'border-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:border-white/20'}`}
